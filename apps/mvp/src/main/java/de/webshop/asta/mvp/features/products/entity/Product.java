@@ -1,8 +1,6 @@
 package de.webshop.asta.mvp.features.products.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,11 +13,12 @@ import java.util.UUID;
 @Entity(name = "product")
 public class Product {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
-    private int productId;
+    private Long productId;
 
     @Column(unique = true,nullable = false,updatable = false, name = "public_id")
-    private UUID publicId;
+    private UUID publicId = UUID.randomUUID();
 
     @Column(name = "name")
     private String name;

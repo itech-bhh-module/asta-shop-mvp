@@ -36,4 +36,13 @@ public class ProductDbService {
 
         return mapper.toDto(current);
     }
+
+    public void deleteProductByPublicId(UUID id){
+        productRepository.deleteProductByPublicId(id);
+    }
+
+    public Product addProduct(ProductDTO dto){
+        //eigentlich wollen wir nicht das gesamte product returnen, nur in dev
+        return productRepository.save(mapper.toProduct(dto));
+    }
 }
