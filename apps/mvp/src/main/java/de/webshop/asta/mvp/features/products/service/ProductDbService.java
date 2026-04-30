@@ -24,7 +24,7 @@ public class ProductDbService {
 
     public ProductDTO updateProductByPublicId(ProductDTO updatedProduct){
         Product current = productRepository.findProductByPublicId(updatedProduct.getPublicId()).orElseThrow(()-> new RuntimeException("Product was not found with public id: " + updatedProduct.getPublicId()));
-
+        //mapper benutzen
         current.setName(updatedProduct.getName());
         current.setDescription(updatedProduct.getDescription());
         current.setPrice(updatedProduct.getPrice());

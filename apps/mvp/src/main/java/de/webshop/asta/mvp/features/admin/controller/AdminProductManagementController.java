@@ -15,7 +15,7 @@ public class AdminProductManagementController {
     private final ProductDbService productDbService;
 
     @PutMapping("/updateProduct")
-    public ResponseEntity<ProductDTO> updateProduct(@RequestBody ProductDTO updatedProduct, UUID publicId){
+    public ResponseEntity<ProductDTO> updateProduct(@RequestBody ProductDTO updatedProduct){
         return ResponseEntity.ok(productDbService.updateProductByPublicId(updatedProduct));
     }
 
