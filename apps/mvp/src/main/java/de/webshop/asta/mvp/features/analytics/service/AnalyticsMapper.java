@@ -8,14 +8,14 @@ import org.springframework.stereotype.Service;
 public class AnalyticsMapper {
     public SessionDTO toDto(Session session){
         return new SessionDTO(
-                session.getAnalytics_id(),
+                session.getAnalyticsId(),
                 session.getLoginTimestamp()
         );
     }
 
     public Session toSession(SessionDTO dto){
         Session session = new Session();
-        session.setAnalytics_id(dto.getAnalyticsId());
+        session.setAnalyticsId(dto.getAnalyticsId());
         session.setLoginTimestamp(dto.getLoginTimestamp());
         return session;
     }

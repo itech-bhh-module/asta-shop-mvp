@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,5 +21,9 @@ public class SessionDbManagementService {
     }
     public Optional<SessionDTO> getSessionBySessionId(Long id){
         return analyticsRepository.findSessionBySessionId(id).map(mapper::toDto);
+    }
+
+    public Optional<Long> getSessionIdByAnalyticsId(UUID analyticsId){
+        return analyticsRepository.findSessionIdByAnalyticsId(analyticsId);
     }
 }

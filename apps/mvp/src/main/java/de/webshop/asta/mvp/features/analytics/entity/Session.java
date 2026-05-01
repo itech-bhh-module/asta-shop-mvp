@@ -20,7 +20,7 @@ public class Session {
     private Long sessionId;
 
     @Column(name = "analytics_id")
-    private UUID analytics_id;
+    private UUID analyticsId;
 
     @Column(name = "login_timestamp")
     private Timestamp loginTimestamp;

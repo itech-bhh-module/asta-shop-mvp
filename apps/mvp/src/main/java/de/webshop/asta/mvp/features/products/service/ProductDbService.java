@@ -48,4 +48,8 @@ public class ProductDbService {
         //eigentlich wollen wir nicht das gesamte product returnen, nur in dev
         return productRepository.save(mapper.toProduct(dto));
     }
+
+    public Optional<Long> getProductIdByPublicId(UUID publicId){
+        return productRepository.findProductIdByPublicId(publicId);
+    }
 }
