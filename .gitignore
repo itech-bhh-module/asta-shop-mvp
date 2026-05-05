@@ -1,11 +1,3 @@
-# Local environment
-  .env
-
-  # Local Codex/tooling state
-  .codex/
-
-  # Local database files
-  db-data/
-
-  # OS/editor noise
-  .DS_Store
+.env
+.codex/
+db-data/
