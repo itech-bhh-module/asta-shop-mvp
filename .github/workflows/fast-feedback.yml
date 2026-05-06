@@ -29,8 +29,9 @@ jobs:
           mvn -B test
       - name: send test results
         uses: EnricoMi/publish-unit-test-result-action@v2
-        if: (!cancelled())
+        if: (always())
         with:
+          check_name: "Maven Test Results"
           files: | 
             **/target/surefire-reports/*.xml
   
