@@ -1,4 +1,10 @@
-db-data/.bash_history
+db-data/
 .env
-db-data/.bash_history:Zone.Identifier
+.bash_history
+*.Identifier
+target/
+**/target/
+*.class
 *.log
+.idea/
+.vscode/
