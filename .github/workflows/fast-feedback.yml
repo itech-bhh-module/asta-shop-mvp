@@ -1,4 +1,7 @@
 name: "fast feedback workflow"
+permissions:
+  checks: write
+  pull-requests: write
 on:
   push:
     branches:
@@ -14,3 +17,16 @@ jobs:
         run: |
           echo "repository contains following files"
           tree
+      - name: setup java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+      - name: run maven tests
+        run: mvn -B test --file apps/mvn/pom.xml
+      - name: send test results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: (!cancelled())
+        with:
+          files: apps/mvn/target/surefire-reports/*.xml
