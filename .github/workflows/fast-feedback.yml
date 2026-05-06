@@ -16,10 +16,6 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v6.0.2
-      - name: list files of repository
-        run: |
-          echo "repository contains following files"
-          tree
       - name: setup java 21
         uses: actions/setup-java@v5
         with:
@@ -31,17 +27,30 @@ jobs:
           cd apps/mvp
           pwd
           mvn -B test
-      - name: Debug - Wo liegen die XML Dateien wirklich?
-        if: always()
-        run: |
-            echo "Aktuelles Verzeichnis: $(pwd)"
-            echo "Gefundene XML-Testberichte:"
-            find . -name "*.xml" | grep "reports" || echo "Keine Reports gefunden!"
-
       - name: send test results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: (!cancelled())
         with:
           files: | 
             **/target/surefire-reports/*.xml
+  
 
+  frontend-ci:
+    name: frontend build and test
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6.0.2
+      - name: debugging path
+        run: |
+          pwd
+          cd apps/frontend
+          ls
+      - name: setup npm
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: './apps/frontend/package-lock.json'
+      - name: install dependecies
+        run: npm ci
