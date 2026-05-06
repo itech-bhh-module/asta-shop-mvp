@@ -23,7 +23,7 @@ jobs:
           cache: 'maven'
       - name: run maven tests
         run: |
-          cd apps/mvn
+          cd ~/apps/mvn
           pwd
           mvn -B test
       - name: send test results
