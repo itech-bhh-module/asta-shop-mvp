@@ -23,6 +23,9 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
+  test:
+    runs-on: ubuntu-latest
+    steps:
       - name: run maven tests
         run: mvn -B test --file apps/mvn/pom.xml
       - name: send test results
