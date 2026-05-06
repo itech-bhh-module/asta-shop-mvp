@@ -8,9 +8,6 @@ jobs:
   backend-ci:
     name: backend build and test
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./apps/mvn
     steps:
       - name: checkout
         uses: actions/checkout@v6.0.2
@@ -26,6 +23,8 @@ jobs:
           cache: 'maven'
       - name: run maven tests
         run: |
+          ls
+          cd apps/mvn
           pwd
           mvn -B test
       - name: send test results
