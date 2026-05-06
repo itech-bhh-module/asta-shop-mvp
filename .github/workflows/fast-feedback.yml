@@ -5,7 +5,8 @@ on:
       - feature/**
   workflow_dispatch: 
 jobs:
-  build:
+  backend-ci:
+    name: backend build and test
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -20,9 +21,6 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
-  test:
-    runs-on: ubuntu-latest
-    steps:
       - name: run maven tests
         run: |
           cd apps/mvn
