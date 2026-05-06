@@ -41,6 +41,11 @@ jobs:
     defaults:
       run:
         working-directory: ./apps/frontend
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: read
+      issues: read
     steps:
       - name: checkout repository
         uses: actions/checkout@v6.0.2
