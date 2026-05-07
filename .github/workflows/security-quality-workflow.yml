@@ -1,0 +1,39 @@
+name: "security quality workflow"
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: read
+      contents: read
+      actions: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['java', 'typescript']
+    steps:
+    - name: checkout repository
+      uses: actions/checkout@v6.0.2
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        queries: security-extended,security-and-quality
+
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
