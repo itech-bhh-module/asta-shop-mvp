@@ -13,8 +13,7 @@ class MvpApplicationTests {
 
 	@Container
 	@ServiceConnection
-	static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18-alpine")
-												.withInitScript("init.sql");
+	static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18-alpine");
 
 	@Test
 	void contextLoads() {
