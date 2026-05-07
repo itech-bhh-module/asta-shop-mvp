@@ -55,7 +55,6 @@
 			<groupId>org.springframework.session</groupId>
 			<artifactId>spring-session-jdbc</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
@@ -80,6 +79,14 @@
 			<artifactId>lombok</artifactId>
 			<version>1.18.42</version>
 			<scope>compile</scope>
+		</dependency>
+		<dependency>
+  			<groupId>org.flywaydb</groupId>
+  			<artifactId>flyway-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
 		<dependency>
             <groupId>org.testcontainers</groupId>
