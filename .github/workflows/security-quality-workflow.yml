@@ -40,6 +40,9 @@ jobs:
 
   run-linters:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/frontend
     steps:
       - name: checkout repository
         uses: actions/checkout@v6.0.2
