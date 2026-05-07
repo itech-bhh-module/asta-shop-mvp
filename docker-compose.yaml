@@ -7,3 +7,22 @@ services:
       - .env
     volumes:
       - ./db-data/:/var/lib/postgresql
+  backend:
+    build:
+      context: ./apps/mvp
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
