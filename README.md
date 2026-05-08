@@ -62,7 +62,7 @@
 | ------------- | ----------------------- | ------- | --------------------- |
 | **Frontend**  | Vite + React            | Latest  | Systemintegratoren    |
 | **Backend**   | Spring Boot             | 3.x     | Systemintegratoren    |
-| **Datenbank** | PostgreSQL              | 15.x    | Entwickler            |
+| **Datenbank** | PostgreSQL              | 17.x    | Entwickler            |
 | **CI/CD**     | GitHub Actions          | –       | Entwickler            |
 | **Container** | Docker + Docker Compose | Latest  | Team                  |
 | **Analytics** | Python (geplant)        | –       | Entwickler            |
@@ -93,11 +93,12 @@
 ## 👥 **Team & Rollen**
 
 
-| Name                | Rolle            | Fokus                      |
+| Name                | Ausbildung            | Fokus                      |
 | ------------------- | ---------------- | -------------------------- |
-| Luc Liss            | Entwickler       | CI/CD-Pipeline, Analytics  |
-| Anonymer Entwickler | Systemintegrator | Spring Boot, Backend-Logik |
-| Systemintegrator 2  | Systemintegrator | Spring Boot, Backend-Logik |
+| Luc  | Anwendungsentwickler       | CI/CD-Pipeline, Analytics, Aushilfe Spring boot  |
+| Emilio | Systemintegrator | Spring Boot, Backend-Logik |
+| Max  | Systemintegrator | Spring Boot, Backend-Logik |
+| Johan  | Daten und Prozessanlyse | Frontend mit Vite |
 
 
 **Ziele:**
@@ -132,8 +133,8 @@ mvp-webshop-asta/
 
 - Docker & Docker Compose ([Installation](https://docs.docker.com/get-docker/))
 - Node.js (für Frontend-Entwicklung)
-- Java 17+ (für Backend-Entwicklung)
-- PostgreSQL (optional, falls lokal getestet werden soll)
+- Java 21 (für Backend-Entwicklung)
+- PostgreSQL 17 (optional, falls lokal getestet werden soll)
 
 ### **Projekt starten**
 
