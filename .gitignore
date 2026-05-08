@@ -1,3 +1,26 @@
+
 .env
-.codex
 db-data/
+
+
+target/
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+
+.vscode/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.factorypath
+
+
+.DS_Store
+Thumbs.db
+
+# Docker Logs
+*.log
