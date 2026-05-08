@@ -711,3 +711,74 @@ export function postSession(session: SessionDTO) {
   den Shop-Flow nicht, falls der Request fehlschlaegt.
 - UI-Fehlerbehandlung geht mit `500`, leerem Body und nicht standardisierten
   Fehlerantworten robust um.
+
+## 🛒 Orders API
+
+### Neue Bestellung anlegen
+Erstellt eine neue Bestellung basierend auf den übergebenen Produktdaten.
+
+*   **URL:** `/api/orders`
+*   **Method:** `POST`
+*   **Request Body (DTO):**
+    ```json
+    {
+      "customerName": "Max Mustermann",
+      "items": [
+        {
+          "productId": 1,
+          "quantity": 2
+        }
+      ]
+    }
+    ```
+*   **Success Response:**
+    *   **Code:** `201 CREATED`
+    *   **Content:** Gibt das erstellte Order-Objekt inklusive generierter ID und Gesamtpreis zurück.
+*   **Error Response (Validation):**
+    *   **Code:** `400 BAD REQUEST` (z. B. wenn `quantity` < 1 oder `customerName` leer ist).
+
+### Alle Bestellungen abrufen
+Gibt eine Liste aller getätigten Bestellungen zurück.
+
+*   **URL:** `/api/orders`
+*   **Method:** `GET`
+*   **Success Response:**
+    *   **Code:** `200 OK`
+    *   **Content:** `[ { "id": 1, "customerName": "Max...", "status": "PENDING", ... } ]`
+
+### Einzelne Bestellung abrufen
+*   **URL:** `/api/orders/{id}`
+*   **Method:** `GET`
+*   **Success Response:** `200 OK`
+*   **Error Response:** `404 NOT FOUND` (Wenn die ID nicht existiert, sauber gehandelt via Optional).
+
+---
+
+## 📦 Products API (Refactored)
+
+*Hinweis: Die Product API wurde überarbeitet, um saubere HTTP-Statuscodes zu liefern und Invalid-Requests durch DTO-Validierung frühzeitig abzufangen.*
+
+### Produkt abrufen (Optional Handling Fix)
+*   **URL:** `/api/products/{id}`
+*   **Method:** `GET`
+*   **Success Response:**
+    *   **Code:** `200 OK`
+    *   **Content:** `{ "id": 1, "name": "Kaffee", "price": 2.50 }`
+*   **Error Response:**
+    *   **Code:** `404 NOT FOUND` (Gefixt: Gibt nun korrekten 404 Statuscode statt einer NullPointerException zurück, falls das Produkt nicht existiert).
+
+### Neues Produkt anlegen (DTO Validation)
+*   **URL:** `/api/products`
+*   **Method:** `POST`
+*   **Request Body:**
+    ```json
+    {
+      "name": "Club Mate",
+      "price": 1.50,
+      "stock": 100
+    }
+    ```
+*   **Success Response:** `201 CREATED`
+*   **Error Responses:** 
+    *   **Code:** `400 BAD REQUEST`
+    *   **Ursache:** Tritt auf, wenn die `@Valid`-Constraints des DTOs verletzt werden (z. B. negativer Preis, fehlender Name).
