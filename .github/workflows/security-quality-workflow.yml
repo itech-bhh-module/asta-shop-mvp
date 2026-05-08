@@ -1,0 +1,75 @@
+name: "security quality workflow"
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: read
+      contents: read
+      actions: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['java', 'javascript']
+    steps:
+    - name: checkout repository
+      uses: actions/checkout@v6.0.2
+
+    - name: setup java jdk 21
+      if: matrix.language == 'java'
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        queries: security-extended,security-and-quality
+
+    - name: Build Java Backend (for CodeQL)
+      if: matrix.language == 'java'
+      working-directory: ./apps/mvp
+      run: mvn clean compile -DskipTests
+
+    - name: Autobuild for Frontend
+      if: matrix.language == 'javascript'
+      uses: github/codeql-action/autobuild@v3
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
+
+  run-linters:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/frontend
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6.0.2
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: install node dependencies
+        run: |
+          npm ci
+
+      - name: run linters
+        run: |
+          npm run lint

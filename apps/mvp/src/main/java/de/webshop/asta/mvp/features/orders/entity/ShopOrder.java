@@ -7,7 +7,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Table(name = "shop_orders")
@@ -19,8 +18,8 @@ import java.util.UUID;
 public class ShopOrder {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     // Wann wurde bestellt? Wichtig für deine spätere Analyse!
     @CreationTimestamp
