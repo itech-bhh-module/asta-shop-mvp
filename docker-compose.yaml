@@ -1,24 +1,28 @@
+version: "3.8"
 services:
   database:
     image: postgres:17
     ports:
       - "5432:5432"
-    env_file:
-      - .env
-    volumes:
-      - ./db-data/:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
   backend:
+    image: ghcr.io/itech-bhh-module/asta-shop-mvp/backend:latest
     build:
       context: ./apps/mvp
       dockerfile: Dockerfile
     container_name: backend-container
     ports:
       - "8081:8081"
-    env_file:
-      - .env
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
     restart: unless-stopped
 
   frontend:
+    image: ghcr.io/itech-bhh-module/asta-shop-mvp/frontend:latest
     build:
       context: ./apps/frontend
       dockerfile: Dockerfile
