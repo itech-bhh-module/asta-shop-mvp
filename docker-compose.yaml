@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
   backend:
-    image: ghcr.io/itech-bhh-module/asta-shop-mvp/backend:latest
+    image: ghcr.io/itech-bhh-module/asta-shop-mvp/backend:${TAG}
     build:
       context: ./apps/mvp
       dockerfile: Dockerfile
@@ -22,7 +22,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: ghcr.io/itech-bhh-module/asta-shop-mvp/frontend:latest
+    image: ghcr.io/itech-bhh-module/asta-shop-mvp/frontend:${TAG}
     build:
       context: ./apps/frontend
       dockerfile: Dockerfile
