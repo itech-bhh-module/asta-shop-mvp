@@ -1,9 +1,32 @@
+version: "3.8"
 services:
   database:
-    image: postgres:18
+    image: postgres:17
     ports:
       - "5432:5432"
-    env_file:
-      - .env
-    volumes:
-      - ./db-data/:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: ${{secrets.POSTGRES_USER}}
+      POSTGRES_PASSWORD: ${{secrets.POSTGRES_PASSWORD}}
+  backend:
+    image: ghcr.io/luclisson/pipeline-development/backend:latest
+    build:
+      context: ./apps/mvp
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: ${{secrets.SPRING_DATASOURCE_URL}}
+      SPRING_DATASOURCE_USERNAME: ${{secrets.SPRING_DATASOURCE_USERNAME}}
+      SPRING_DATASOURCE_PASSWORD: ${{secrets.SPRING_DATASOURCE_PASSWORD}}
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/luclisson/pipeline-development/frontend:latest
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
