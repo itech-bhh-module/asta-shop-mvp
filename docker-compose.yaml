@@ -11,6 +11,7 @@ services:
     build:
       context: ./apps/mvp
       dockerfile: Dockerfile
+    container_name: backend-container
     ports:
       - "8081:8081"
     env_file:
@@ -21,6 +22,7 @@ services:
     build:
       context: ./apps/frontend
       dockerfile: Dockerfile
+    container_name: frontend-container
     ports:
       - "3000:80"
     depends_on:
