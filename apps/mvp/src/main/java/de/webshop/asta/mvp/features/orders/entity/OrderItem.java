@@ -1,10 +1,10 @@
 package de.webshop.asta.mvp.features.orders.entity;
 
-import de.webshop.asta.mvp.features.products.entity.Product;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
+import java.util.UUID;
 
 @Entity
 @Table(name = "order_items")
@@ -12,26 +12,32 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class OrderItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Zu welcher Bestellung gehört diese Position?
+    @Column(nullable = false, unique = true)
+    private UUID publicId = UUID.randomUUID();
+
+    @JsonIgnore 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shop_order_id", nullable = false)
     private ShopOrder shopOrder;
 
-    // Welches Produkt wurde gekauft?
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
-    private Product product;
+    @Column(nullable = false)
+    private Long productId;
 
-    // Historische Daten: Falls das Produkt später gelöscht/geändert wird, 
-    // behalten wir hier, was der Kunde damals wirklich gekauft hat.
+    @Column(nullable = false)
+    private UUID productPublicId;
+
+    @Column(nullable = false)
     private String productNameAtPurchase;
-    private BigDecimal priceAtPurchase;
-    private int quantity;
+
+    @Column(nullable = false)
+    private Integer priceAtPurchase;
+
+    @Column(nullable = false)
+    private Integer quantity;
 }

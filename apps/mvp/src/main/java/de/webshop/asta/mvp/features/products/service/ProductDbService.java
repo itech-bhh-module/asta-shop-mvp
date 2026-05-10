@@ -17,9 +17,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ProductDbService {
     private final ProductRepository productRepository;
-    private final MapperService mapper;
+    private final MapperService mapper; 
 
-    // Optional entfernt, wirft direkt 404 Not Found, wenn nichts gefunden wird
     public ProductDTO getProductByPublicId(UUID id){
         return productRepository.findProductByPublicId(id)
                 .map(mapper::toDto)
@@ -30,8 +29,7 @@ public class ProductDbService {
         return productRepository.findProductByProductId(id).map(mapper::toDto);
     }
 
-    // Filtert jetzt bewusst alle INACTIVE Produkte aus!
-    public List<ProductDTO> getProducts(){
+    public List<ProductDTO> getAllProducts(){
         return productRepository.findAll().stream()
                 .filter(product -> product.getStatus() == ProductStatus.ACTIVE)
                 .map(mapper::toDto)
@@ -54,7 +52,6 @@ public class ProductDbService {
         return mapper.toDto(current);
     }
 
-    // Gibt das aktualisierte DTO zurück, damit der Controller nicht noch einmal suchen muss
     public ProductDTO setProductInactiveByPublicId(UUID publicId){
         Product product = productRepository.findProductByPublicId(publicId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produkt nicht gefunden."));
@@ -65,7 +62,9 @@ public class ProductDbService {
     }
 
     public Product addProduct(ProductDTO dto){
-        return productRepository.save(mapper.toProduct(dto));
+        Product product = mapper.toProduct(dto);
+        product.setStatus(ProductStatus.ACTIVE); 
+        return productRepository.save(product);
     }
 
     public Optional<Long> getProductIdByPublicId(UUID publicId){

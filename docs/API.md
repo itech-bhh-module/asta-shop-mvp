@@ -782,3 +782,30 @@ Gibt eine Liste aller getätigten Bestellungen zurück.
 *   **Error Responses:** 
     *   **Code:** `400 BAD REQUEST`
     *   **Ursache:** Tritt auf, wenn die `@Valid`-Constraints des DTOs verletzt werden (z. B. negativer Preis, fehlender Name).
+
+    ## 🛠 Architektur & Updates
+
+* **API-Design & Fehlerbehandlung (Vermeidung von 500er-Fehlern):** `ResponseEntity<Optional<ProductDTO>>` wurde entfernt. API-Verhalten und Statuscodes sind nun eindeutig: Fehlende oder inaktive Produkte bei Einzelabfragen und Updates werfen verlässlich einen sauberen `404 NOT FOUND` statt eines ungeplanten serverseitigen Fehlers.
+* **Stabile Error-Response (400 Bad Request):** Durch den `ValidationExceptionHandler` liefern ungültige Requests nun ein konsistentes JSON-Format zurück. Manuelle Tests (z. B. Menge 0) haben bestätigt, dass Feldfehler (z. B. `items[0].quantity`) präzise an das Frontend kommuniziert werden. Fachliche Fehler (z. B. unzureichender Bestand) werden abgefangen und geordnet als `400 BAD REQUEST` zurückgegeben.
+* **Fachliche Logik & Kompatibilität:** Die öffentliche Produktliste filtert nun serverseitig inaktive Produkte heraus (liefert nur noch `ACTIVE`). Datenbank-Entities bleiben weiterhin strikt gekapselt (Rückgabe erfolgt nur via DTOs). Die harte FK-Kopplung bei Order-Items wurde gelöst (Entkopplung via UUID/Snapshot).
+* **Testabdeckung & Compilierung:** Der Code kompiliert fehlerfrei (`mvn clean test` schließt erfolgreich ab). Das neue Backend-Fehlerverhalten (`404` bei fehlenden Produkten, Validierung des Lagerbestands) ist durch angepasste Unit-Tests (`ProductDbServiceTest`, `OrderControllerValidationTest`) abgesichert. Die Tests wurden auf Spring Boot 3.5 aktualisiert (`@MockitoBean` statt `@MockBean`).
+
+---
+
+## Orders API
+
+### Neue Bestellung anlegen
+Erstellt eine neue Bestellung basierend auf den übergebenen Produktdaten und validiert den Lagerbestand.
+
+* **URL:** `/api/order/createOrder`
+* **Method:** `POST`
+* **Request Body (DTO):**
+  ```json
+  {
+    "items": [
+      {
+        "productId": "f7485e4f-e2bc-4173-b1f1-46d5f6029d06",
+        "quantity": 2
+      }
+    ]
+  }

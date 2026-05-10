@@ -7,26 +7,26 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "shop_orders")
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@NoArgsConstructor 
+@AllArgsConstructor 
 public class ShopOrder {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Wann wurde bestellt? Wichtig für deine spätere Analyse!
+    @Column(nullable = false, unique = true)
+    private UUID publicId = UUID.randomUUID();
+
     @CreationTimestamp
     private LocalDateTime orderDate;
 
-    // Eine Bestellung kann viele Produkte (Items) enthalten
-    @Builder.Default 
     @OneToMany(mappedBy = "shopOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 }

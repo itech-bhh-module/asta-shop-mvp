@@ -8,5 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface OrderRepository extends JpaRepository<ShopOrder, UUID> {
-    // Spring Boot generiert hier automatisch alle Standard-Methoden wie save(), findAll(), etc.
+    
 }
