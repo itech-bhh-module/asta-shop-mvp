@@ -1,5 +1,6 @@
 version: 2
 updates:
+  target-branch: "dev"
   - package-ecosystem: "maven"
     directory: "/apps/mvp"
     schedule:
