@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - main
+      - dev
 jobs:
   backend-ci:
     name: backend build and test
