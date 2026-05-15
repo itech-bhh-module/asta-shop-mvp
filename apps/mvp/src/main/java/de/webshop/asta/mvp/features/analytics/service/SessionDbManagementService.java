@@ -17,6 +17,7 @@ public class SessionDbManagementService {
 
     public Session addSessionObject(SessionDTO sessionDTO){
         //sollte nicht session nach aussen exposen, nur fuer dev aktuell
+        //durch AnalyticsController erfüllt. s. auch sessionresponsedto
         if (sessionDTO.getAnalyticsId() != null) {
             Optional<Session> existingSession = analyticsRepository.findFirstSessionByAnalyticsId(sessionDTO.getAnalyticsId());
             if (existingSession.isPresent()) {

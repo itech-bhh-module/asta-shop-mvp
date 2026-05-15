@@ -10,7 +10,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class SessionDTO {
+public class SessionResponseDTO {
     private UUID analyticsId;
     private Instant loginTimestamp;
 }

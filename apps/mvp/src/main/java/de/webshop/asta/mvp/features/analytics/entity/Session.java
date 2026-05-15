@@ -4,9 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Generated;
 
-import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -19,9 +18,9 @@ public class Session {
     @Column(name = "session_id")
     private Long sessionId;
 
-    @Column(name = "analytics_id")
+    @Column(name = "analytics_id", nullable = false, unique = true)
     private UUID analyticsId;
 
     @Column(name = "login_timestamp")
-    private Timestamp loginTimestamp;
+    private Instant loginTimestamp;
 }
