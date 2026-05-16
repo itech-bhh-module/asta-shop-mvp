@@ -37,7 +37,6 @@ class SessionDbManagementServiceTest {
         SessionDTO dto = new SessionDTO(newId, Instant.now());
         Session newSession = new Session(1L, newId, dto.getLoginTimestamp());
 
-        // Mocking: DB findet nichts, Mapper wandelt um, DB speichert
         when(analyticsRepository.findFirstSessionByAnalyticsId(newId)).thenReturn(Optional.empty());
         when(mapper.toSession(dto)).thenReturn(newSession);
         when(analyticsRepository.save(newSession)).thenReturn(newSession);
@@ -45,7 +44,7 @@ class SessionDbManagementServiceTest {
         Session result = service.addSessionObject(dto);
 
         assertEquals(newId, result.getAnalyticsId());
-        verify(analyticsRepository, times(1)).save(any(Session.class)); // DoD: Erstellung geprüft
+        verify(analyticsRepository, times(1)).save(any(Session.class)); 
     }
 
     @Test
@@ -60,6 +59,6 @@ class SessionDbManagementServiceTest {
         Session result = service.addSessionObject(dto);
 
         assertEquals(99L, result.getSessionId()); 
-        verify(analyticsRepository, never()).save(any(Session.class)); // DoD: Keine neue DB-Speicherung!
+        verify(analyticsRepository, never()).save(any(Session.class));
     }
 }
