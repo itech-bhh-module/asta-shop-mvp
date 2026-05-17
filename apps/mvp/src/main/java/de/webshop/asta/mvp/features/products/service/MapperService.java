@@ -2,17 +2,11 @@ package de.webshop.asta.mvp.features.products.service;
 
 import de.webshop.asta.mvp.features.products.dto.ProductDTO;
 import de.webshop.asta.mvp.features.products.entity.Product;
-import de.webshop.asta.mvp.features.products.repository.ProductRepository;
 import de.webshop.asta.mvp.common.ProductStatus;
 import org.springframework.stereotype.Service;
 
 @Service
 public class MapperService {
-    private final ProductRepository productRepository;
-
-    public MapperService(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
 
     public ProductDTO toDto(Product p){
         return new ProductDTO(
@@ -36,6 +30,6 @@ public class MapperService {
         product.setTag(dto.getTag());
         product.setStatus(dto.getStatus() == null ? ProductStatus.ACTIVE : dto.getStatus());
 
-        return productRepository.save(product);
+        return product;
     }
 }
