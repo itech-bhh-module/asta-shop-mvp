@@ -44,11 +44,7 @@ public class CartMapper {
                         "Session nicht gefunden."
                 ));
 
-        Long productId = productDbService.getProductIdByPublicId(dto.getPublicProductId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Produkt nicht gefunden."
-                ));
+        Long productId = productDbService.getActiveProductIdByPublicId(dto.getPublicProductId());
 
         Cart cart = new Cart();
         cart.setSessionId(sessionId);

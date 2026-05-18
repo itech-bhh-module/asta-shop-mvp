@@ -1,17 +1,18 @@
 package de.webshop.asta.mvp.features.products.service;
 
-import de.webshop.asta.mvp.features.products.dto.ProductDTO;
-import de.webshop.asta.mvp.features.products.entity.Product;
-import de.webshop.asta.mvp.features.products.repository.ProductRepository;
-import de.webshop.asta.mvp.common.ProductStatus;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import de.webshop.asta.mvp.common.ProductStatus;
+import de.webshop.asta.mvp.features.products.dto.ProductDTO;
+import de.webshop.asta.mvp.features.products.entity.Product;
+import de.webshop.asta.mvp.features.products.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -69,5 +70,16 @@ public class ProductDbService {
 
     public Optional<Long> getProductIdByPublicId(UUID publicId){
         return productRepository.findProductIdByPublicId(publicId);
+    }
+
+    public Long getActiveProductIdByPublicId(UUID publicId){
+        Product product = productRepository.findProductByPublicId(publicId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produkt nicht gefunden."));
+
+        if (product.getStatus() != ProductStatus.ACTIVE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Inaktive Produkte können nicht in den Warenkorb gelegt werden.");
+        }
+
+        return product.getProductId();
     }
 }
