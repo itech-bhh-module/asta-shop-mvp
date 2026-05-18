@@ -31,13 +31,6 @@ jobs:
           cd ~/.ssh/
           ls -A
 
-      - name: Simuliere Backend-Tests
-        run: |
-          echo "Testing: Prüfe, ob Backend-Container läuft..."
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "
-            docker ps | grep ${{ env.CONTAINER_NAME }} || { echo 'Backend-Container läuft nicht!'; exit 1; }
-          "
-
       - name: Deploy Backend (Testing)
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "
@@ -45,6 +38,12 @@ jobs:
             docker stop ${{ env.CONTAINER_NAME }} || true && \
             docker rm ${{ env.CONTAINER_NAME }} || true && \
             docker run -d --name ${{ env.CONTAINER_NAME }} -p ${{ env.EXTERNAL_PORT }}:${{ env.INTERNAL_PORT }} $GHCR_IMAGE
+          "
+      - name: Simuliere Backend-Tests
+        run: |
+          echo "Testing: Prüfe, ob Backend-Container läuft..."
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "
+            docker ps | grep ${{ env.CONTAINER_NAME }} || { echo 'Backend-Container läuft nicht!'; exit 1; }
           "
 
   deploy-to-production:
