@@ -12,6 +12,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Data
 public class CartDTO {
+
     @NotNull(message = "Analytics-ID darf nicht null sein.")
     private UUID analyticsId;
 
