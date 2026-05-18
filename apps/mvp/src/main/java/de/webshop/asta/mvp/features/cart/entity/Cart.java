@@ -1,12 +1,9 @@
 package de.webshop.asta.mvp.features.cart.entity;
 
-import de.webshop.asta.mvp.features.products.entity.Product;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.Set;
 
 @Entity
 @NoArgsConstructor
@@ -18,16 +15,15 @@ public class Cart {
     @Column(name = "cart_id")
     private Long cartId;
 
-    @Column(name = "session_id")
+    @Column(name = "session_id", nullable = false)
     private Long sessionId;
 
-    @Column(name = "product_id")
+    @Column(name = "product_id", nullable = false)
     private Long productId;
 
     @Column(name = "amount_selected")
     private int amountSelected;
 
-    @Column
-    //muss noch enum werden!
+    @Column //muss noch enum werden
     private int status;
 }

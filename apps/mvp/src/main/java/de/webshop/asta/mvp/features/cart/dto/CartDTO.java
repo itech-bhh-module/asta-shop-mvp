@@ -5,12 +5,14 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.util.UUID;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
 public class CartDTO {
+
     @NotNull(message = "Analytics-ID darf nicht null sein.")
     private UUID analyticsId;
 

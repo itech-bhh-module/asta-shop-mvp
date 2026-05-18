@@ -1,6 +1,7 @@
 package de.webshop.asta.mvp.features.analytics.service;
 
 import de.webshop.asta.mvp.features.analytics.dto.SessionDTO;
+import de.webshop.asta.mvp.features.analytics.dto.SessionResponseDTO;
 import de.webshop.asta.mvp.features.analytics.entity.Session;
 import de.webshop.asta.mvp.features.analytics.repository.AnalyticsRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,24 +13,27 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class SessionDbManagementService {
+
     private final AnalyticsRepository analyticsRepository;
     private final AnalyticsMapper mapper;
 
-    public Session addSessionObject(SessionDTO sessionDTO){
-        //sollte nicht session nach aussen exposen, nur fuer dev aktuell
-        if (sessionDTO.getAnalyticsId() != null) {
-            Optional<Session> existingSession = analyticsRepository.findFirstSessionByAnalyticsId(sessionDTO.getAnalyticsId());
-            if (existingSession.isPresent()) {
-                return existingSession.get();
-            }
+    public SessionResponseDTO addSessionObject(SessionDTO sessionDTO) {
+        Optional<Session> existingSession = analyticsRepository.findFirstSessionByAnalyticsId(sessionDTO.getAnalyticsId());
+
+        if (existingSession.isPresent()) {
+            Session oldSession = existingSession.get();
+            return new SessionResponseDTO(oldSession.getAnalyticsId(), oldSession.getLoginTimestamp());
         }
-        return analyticsRepository.save(mapper.toSession(sessionDTO));
+
+        Session savedSession = analyticsRepository.save(mapper.toSession(sessionDTO));
+        return new SessionResponseDTO(savedSession.getAnalyticsId(), savedSession.getLoginTimestamp());
     }
-    public Optional<SessionDTO> getSessionBySessionId(Long id){
+
+    public Optional<SessionDTO> getSessionBySessionId(Long id) {
         return analyticsRepository.findSessionBySessionId(id).map(mapper::toDto);
     }
 
-    public Optional<Long> getSessionIdByAnalyticsId(UUID analyticsId){
+    public Optional<Long> getSessionIdByAnalyticsId(UUID analyticsId) {
         return analyticsRepository.findSessionIdByAnalyticsId(analyticsId);
     }
 }
