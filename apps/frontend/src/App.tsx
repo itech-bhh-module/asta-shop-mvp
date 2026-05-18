@@ -107,12 +107,9 @@ export default function App() {
   }, [isAdminAuthenticated])
 
   useEffect(() => {
-    if (window.location.pathname === '/admin/panel' && !isAdminAuthenticated) {
-      handleRouting()
-    }
     window.addEventListener('popstate', handleRouting)
     return () => window.removeEventListener('popstate', handleRouting)
-  }, [handleRouting, isAdminAuthenticated])
+  }, [handleRouting])
 
   useEffect(() => {
     if (!analyticsPosted) {
@@ -373,7 +370,7 @@ interface ShopViewProps {
   onAddToCart: (product: ProductDTO) => void
   onRefreshProducts: () => Promise<void>
   onRemoveFromCart: (id: string) => void
-  onChangeQuantity: (id: string, current: number, delta: number) => void
+  onChangeQuantity: (id: string, current: number, delta: number) => Promise<void>
   onSelectProduct: (id: string | null) => void
   productCount: number
   products: ProductDTO[]
@@ -443,7 +440,8 @@ function ShopView({
             setCheckoutForm={setCheckoutForm} 
             isSubmittingOrder={isSubmittingOrder} 
             onCheckoutSubmit={onCheckoutSubmit} 
-            setIsCheckoutView={setIsCheckoutView} />
+            setIsCheckoutView={setIsCheckoutView} 
+          />
         ) : (
           <ProductGrid 
             products={products} 
@@ -453,7 +451,8 @@ function ShopView({
             cartProductIds={cartProductIds} 
             onRefreshProducts={onRefreshProducts} 
             onAddToCart={onAddToCart} 
-            onSelectProduct={onSelectProduct} />
+            onSelectProduct={onSelectProduct} 
+          />
         )}
       </div>
 
@@ -475,12 +474,14 @@ function ShopView({
           isCheckoutView={isCheckoutView} 
           setIsCheckoutView={setIsCheckoutView} 
           onChangeQuantity={onChangeQuantity} 
-          onRemoveFromCart={onRemoveFromCart} />
+          onRemoveFromCart={onRemoveFromCart} 
+        />
 
         <DetailWidget 
           detailLoading={detailLoading} 
           detailError={detailError} 
-          selectedProduct={selectedProduct} />
+          selectedProduct={selectedProduct} 
+        />
       </aside>
     </div>
   )
@@ -490,7 +491,7 @@ interface CheckoutFormProps {
   checkoutForm: CheckoutFormState
   setCheckoutForm: React.Dispatch<React.SetStateAction<CheckoutFormState>>
   isSubmittingOrder: boolean
-  onCheckoutSubmit: (event: React.FormEvent) => Promise<void>
+  onCheckoutSubmit: (event: React.FormEvent) => void
   setIsCheckoutView: React.Dispatch<React.SetStateAction<boolean>>
 }
 
@@ -498,7 +499,7 @@ function CheckoutForm({ checkoutForm, setCheckoutForm, isSubmittingOrder, onChec
   return (
     <section style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', padding: '2.5rem', borderRadius: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
       <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '1.5rem', color: '#000000' }}>Kontaktdaten &amp; Abholort</h2>
-      <form onSubmit={(e) => { void onCheckoutSubmit(e) }} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <form onSubmit={onCheckoutSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontWeight: 'bold', fontSize: '0.875rem', color: '#374151' }}>
           Dein Name *
           <input type="text" required value={checkoutForm.name} onChange={e => setCheckoutForm(prev => ({...prev, name: e.target.value}))} style={{ padding: '0.65rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.95rem' }} placeholder="Max Mustermann" />
@@ -562,7 +563,8 @@ function ProductGrid({ products, productsLoading, productsError, productCount, c
               isInCart={product.publicId ? cartProductIds.has(product.publicId) : false}
               onAddToCart={() => onAddToCart(product)}
               onSelect={() => { onSelectProduct(product.publicId) }}
-              product={product} />
+              product={product} 
+            />
           ))}
         </div>
       </section>
@@ -580,7 +582,7 @@ interface CartWidgetProps {
   isCheckoutView: boolean
   setIsCheckoutView: React.Dispatch<React.SetStateAction<boolean>>
   onChangeQuantity: (id: string, current: number, delta: number) => Promise<void>
-  onRemoveFromCart: (id: string) => Promise<void>
+  onRemoveFromCart: (id: string) => void
 }
 
 function CartWidget({ uniqueCartList, products, cartLoading, cartError, orderNotice, totalCartPrice, isCheckoutView, setIsCheckoutView, onChangeQuantity, onRemoveFromCart }: CartWidgetProps) {
@@ -657,7 +659,7 @@ function ProductCard({ isInCart, onAddToCart, onSelect, product }: { isInCart: b
 
 interface CartListProps {
   cartItems: Array<{ publicProductId: string; amountSelected: number }>
-  onRemoveFromCart: (id: string) => Promise<void>
+  onRemoveFromCart: (id: string) => void
   onChangeQuantity: (id: string, current: number, delta: number) => Promise<void>
   products: ProductDTO[]
 }
@@ -681,7 +683,7 @@ function CartList({ cartItems, onRemoveFromCart, onChangeQuantity, products }: C
                 <button type="button" onClick={(e) => { e.stopPropagation(); void onChangeQuantity(item.publicProductId, item.amountSelected, 1) }} style={{ padding: '1px 6px', border: '1px solid #d1d5db', background: '#fff', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.75rem' }}>+</button>
               </div>
             </div>
-            <button type="button" onClick={(e) => { e.stopPropagation(); void onRemoveFromCart(item.publicProductId) }} style={{ padding: '0.25rem 0.5rem', fontSize: '0.725rem', color: '#ef4444', backgroundColor: '#fee2e2', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: 600 }}>
+            <button type="button" onClick={(e) => { e.stopPropagation(); onRemoveFromCart(item.publicProductId) }} style={{ padding: '0.25rem 0.5rem', fontSize: '0.725rem', color: '#ef4444', backgroundColor: '#fee2e2', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: 600 }}>
               Löschen
             </button>
           </article>
