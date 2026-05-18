@@ -6,8 +6,9 @@ on:
   workflow_dispatch:
 
 env:
-  GHCR_IMAGE: "ghcr.io/${{ github.repository }}/backend:${{ github.sha }}"
-  CONTAINER_NAME: "backend-${{ github.sha }}"
+  MAIN_SHA: $(git show --format="%H" --no-patch origin/main)
+  GHCR_IMAGE: "ghcr.io/${{ github.repository }}/backend:$MAIN_SHA"
+  CONTAINER_NAME: "backend-$MAIN_SHA"
   INTERNAL_PORT: 8081
   EXTERNAL_PORT: 8081
 
