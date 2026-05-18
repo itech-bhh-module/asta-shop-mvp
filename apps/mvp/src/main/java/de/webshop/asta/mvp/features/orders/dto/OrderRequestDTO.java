@@ -2,7 +2,7 @@ package de.webshop.asta.mvp.features.orders.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull; // WICHTIG: Import nicht vergessen
+import jakarta.validation.constraints.NotNull; 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
