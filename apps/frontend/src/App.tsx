@@ -65,7 +65,7 @@ const emptyCheckoutForm: CheckoutFormState = {
 }
 
 export default function App() {
-  const [route, setRoute] = useState<Route>(() => window.location.pathname === '/admin/panel' ? 'admin' : 'shop')
+  const [route, setRoute] = useState<Route>('shop')
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false)
   const [analyticsId, setAnalyticsId] = useState(getOrCreateAnalyticsId)
   const [products, setProducts] = useState<ProductDTO[]>([])
@@ -106,14 +106,19 @@ export default function App() {
     }
   }, [isAdminAuthenticated])
 
-  // Korrigierter Routing Effect ohne Linter-Warnungen und Endlosschleifen
+  // LÖSUNG: Initiale Prüfung beim allerersten Laden (Mount) asynchron triggern,
+  // um den synchronen State-Wechsel ("cascading renders") im Effekt-Body zu verhindern.
   useEffect(() => {
-    if (window.location.pathname === '/admin/panel' && !isAdminAuthenticated) {
-      handleRouting()
+    const initialCheck = () => {
+      if (window.location.pathname === '/admin/panel') {
+        handleRouting()
+      }
     }
+    initialCheck()
+    
     window.addEventListener('popstate', handleRouting)
     return () => window.removeEventListener('popstate', handleRouting)
-  }, [handleRouting, isAdminAuthenticated])
+  }, [handleRouting])
 
   useEffect(() => {
     if (!analyticsPostedRef.current) {
@@ -373,9 +378,9 @@ interface ShopViewProps {
   detailLoading: boolean
   onAddToCart: (product: ProductDTO) => void
   onRefreshProducts: () => Promise<void>
-  onRemoveFromCart: (id: string) => Promise<void>
-  onChangeQuantity: (id: string, current: number, delta: number) => Promise<void>
-  onSelectProduct: (id: string | null) => Promise<void>
+  onRemoveFromCart: (id: string) => void
+  onChangeQuantity: (id: string, current: number, delta: number) => void
+  onSelectProduct: (id: string | null) => void
   productCount: number
   products: ProductDTO[]
   productsError: string
@@ -536,7 +541,7 @@ interface ProductGridProps {
   cartProductIds: Set<string>
   onRefreshProducts: () => Promise<void>
   onAddToCart: (product: ProductDTO) => void
-  onSelectProduct: (publicId: string | null) => Promise<void>
+  onSelectProduct: (publicId: string | null) => void
 }
 
 function ProductGrid({ products, productsLoading, productsError, productCount, cartProductIds, onRefreshProducts, onAddToCart, onSelectProduct }: ProductGridProps) {
@@ -557,12 +562,12 @@ function ProductGrid({ products, productsLoading, productsError, productCount, c
         {productsLoading && <StateMessage title="Produkte werden geladen..." />}
         {productsError && <StateMessage tone="error" title={productsError} />}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.5rem' }}>
-          {products.map((product: ProductDTO, index) => (
+          {products.map((product: ProductDTO) => (
             <ProductCard
-              key={product.publicId ?? `${product.name}-${index}`}
+              key={product.publicId ?? product.name}
               isInCart={product.publicId ? cartProductIds.has(product.publicId) : false}
               onAddToCart={() => onAddToCart(product)}
-              onSelect={() => { void onSelectProduct(product.publicId) }}
+              onSelect={() => onSelectProduct(product.publicId)}
               product={product} />
           ))}
         </div>
@@ -580,8 +585,8 @@ interface CartWidgetProps {
   totalCartPrice: number
   isCheckoutView: boolean
   setIsCheckoutView: React.Dispatch<React.SetStateAction<boolean>>
-  onChangeQuantity: (id: string, current: number, delta: number) => Promise<void>
-  onRemoveFromCart: (id: string) => Promise<void>
+  onChangeQuantity: (id: string, current: number, delta: number) => void
+  onRemoveFromCart: (id: string) => void
 }
 
 function CartWidget({ uniqueCartList, products, cartLoading, cartError, orderNotice, totalCartPrice, isCheckoutView, setIsCheckoutView, onChangeQuantity, onRemoveFromCart }: CartWidgetProps) {
@@ -658,8 +663,8 @@ function ProductCard({ isInCart, onAddToCart, onSelect, product }: { isInCart: b
 
 interface CartListProps {
   cartItems: Array<{ publicProductId: string; amountSelected: number }>
-  onRemoveFromCart: (id: string) => Promise<void>
-  onChangeQuantity: (id: string, current: number, delta: number) => Promise<void>
+  onRemoveFromCart: (id: string) => void
+  onChangeQuantity: (id: string, current: number, delta: number) => void
   products: ProductDTO[]
 }
 
@@ -677,12 +682,12 @@ function CartList({ cartItems, onRemoveFromCart, onChangeQuantity, products }: C
                 {product ? formatPrice(product.price * item.amountSelected) : ''}
               </p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.35rem' }}>
-                <button type="button" onClick={(e) => { e.stopPropagation(); void onChangeQuantity(item.publicProductId, item.amountSelected, -1) }} style={{ padding: '1px 6px', border: '1px solid #d1d5db', background: '#fff', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.75rem' }}>-</button>
+                <button type="button" onClick={(e) => { e.stopPropagation(); onChangeQuantity(item.publicProductId, item.amountSelected, -1) }} style={{ padding: '1px 6px', border: '1px solid #d1d5db', background: '#fff', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.75rem' }}>-</button>
                 <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#000000', minWidth: '1rem', textAlign: 'center' }}>{item.amountSelected}</span>
-                <button type="button" onClick={(e) => { e.stopPropagation(); void onChangeQuantity(item.publicProductId, item.amountSelected, 1) }} style={{ padding: '1px 6px', border: '1px solid #d1d5db', background: '#fff', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.75rem' }}>+</button>
+                <button type="button" onClick={(e) => { e.stopPropagation(); onChangeQuantity(item.publicProductId, item.amountSelected, 1) }} style={{ padding: '1px 6px', border: '1px solid #d1d5db', background: '#fff', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.75rem' }}>+</button>
               </div>
             </div>
-            <button type="button" onClick={(e) => { e.stopPropagation(); void onRemoveFromCart(item.publicProductId) }} style={{ padding: '0.25rem 0.5rem', fontSize: '0.725rem', color: '#ef4444', backgroundColor: '#fee2e2', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: 600 }}>
+            <button type="button" onClick={(e) => { e.stopPropagation(); onRemoveFromCart(item.publicProductId) }} style={{ padding: '0.25rem 0.5rem', fontSize: '0.725rem', color: '#ef4444', backgroundColor: '#fee2e2', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: 600 }}>
               Löschen
             </button>
           </article>
@@ -843,8 +848,8 @@ function AdminPanel({ onRefreshProducts, products, productsError, productsLoadin
           {productsLoading && <StateMessage title="Produkte werden geladen..." />}
           {productsError && <StateMessage tone="error" title={productsError} />}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {products.map((product: ProductDTO, index) => (
-              <div key={product.publicId ?? `${product.name}-${index}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', border: '1px solid #f3f4f6', borderRadius: '8px' }}>
+            {products.map((product: ProductDTO) => (
+              <div key={product.publicId ?? product.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', border: '1px solid #f3f4f6', borderRadius: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ width: '50px', height: '50px', borderRadius: '4px', overflow: 'hidden' }}><ProductImage imagePath={product.imagePath} name={product.name} /></div>
                   <div>
@@ -874,12 +879,10 @@ function AdminStatus() {
     setLoading(true)
     const nextStatuses = await Promise.all([checkApiHealth(), checkActuatorHealth(), checkDatabaseHealth()])
     setStatuses(nextStatuses)
-    loading && setLoading(false)
-  }, [loading])
+    setLoading(false)
+  }, [])
 
-  useEffect(() => { 
-    queueMicrotask(() => { void loadStatuses() }) 
-  }, [loadStatuses])
+  useEffect(() => { queueMicrotask(() => { void loadStatuses() }) }, [loadStatuses])
 
   return (
     <section className="section-band status-section" style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '1rem', padding: '1.5rem' }}>
