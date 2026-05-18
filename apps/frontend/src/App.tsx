@@ -21,6 +21,7 @@ import {
 import './App.css'
 
 const ANALYTICS_STORAGE_KEY = 'asta.analyticsId'
+const ADMIN_PASSWORD = 'admin'
 
 type Route = 'shop' | 'admin'
 
@@ -67,7 +68,7 @@ let analyticsPosted = false
 
 export default function App() {
   const [route, setRoute] = useState<Route>(() => window.location.pathname === '/admin/panel' ? 'admin' : 'shop')
-  const [isAdminAuthenticated] = useState(true)
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false)
   const [analyticsId, setAnalyticsId] = useState(getOrCreateAnalyticsId)
   const [products, setProducts] = useState<ProductDTO[]>([])
   const [productsLoading, setProductsLoading] = useState(true)
@@ -84,22 +85,46 @@ export default function App() {
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false)
   const [orderNotice, setOrderNotice] = useState<Notice | null>(null)
 
-  const handleRouting = useCallback(() => {
+  // handleRouting prüft den aktuellen Pfad und gleicht den State ab.
+  // isAdminAuthenticated wird als Parameter übergeben, damit useCallback stabil bleibt 
+  // und nicht bei jedem State-Wechsel eine neue Funktionsreferenz erzeugt.
+  const handleRouting = useCallback((authenticated: boolean) => {
     const currentPath = window.location.pathname
     if (currentPath === '/admin/panel') {
-      setRoute('admin')
+      if (authenticated) {
+        setRoute('admin')
+      } else {
+        const password = window.prompt('Bitte Admin-Passwort eingeben:')
+        if (password === ADMIN_PASSWORD) {
+          setIsAdminAuthenticated(true)
+          setRoute('admin')
+        } else {
+          alert('Falsches Passwort!')
+          window.history.pushState({}, '', '/')
+          setRoute('shop')
+        }
+      }
     } else {
       setRoute('shop')
     }
   }, [])
 
+  // Ein einziger, sauberer Effekt für das Mounten des Event-Listeners.
+  // Verhindert Linter-Warnungen und unendliche Update-Schleifen.
   useEffect(() => {
-    if (window.location.pathname === '/admin/panel') {
-      handleRouting()
+    // Initialer Check beim Laden der Seite
+    handleRouting(isAdminAuthenticated)
+
+    const onPopState = () => {
+      // Nutzt den aktuellsten State über den Callback-Ref-Ansatz oder liest ihn direkt aus
+      handleRouting(isAdminAuthenticated)
     }
-    window.addEventListener('popstate', handleRouting)
-    return () => window.removeEventListener('popstate', handleRouting)
-  }, [handleRouting])
+
+    window.addEventListener('popstate', onPopState)
+    return () => {
+      window.removeEventListener('popstate', onPopState)
+    }
+  }, [handleRouting, isAdminAuthenticated])
 
   useEffect(() => {
     if (!analyticsPosted) {
@@ -159,7 +184,8 @@ export default function App() {
   function navigate(nextRoute: Route) {
     const path = nextRoute === 'admin' ? '/admin/panel' : '/'
     window.history.pushState({}, '', path)
-    handleRouting()
+    // Direktes Triggern nach dem PushState mit dem aktuellen Authentifizierungsstatus
+    handleRouting(isAdminAuthenticated)
   }
 
   async function selectProduct(publicId: string | null) {
@@ -785,7 +811,7 @@ function AdminPanel({ onRefreshProducts, products, productsError, productsLoadin
     <div className="page-grid admin-page" style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
       <section className="admin-head" style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '2rem' }}>
         <p className="eyebrow" style={{ color: '#008296', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.75rem' }}>Admin Dashboard</p>
-        <h1 style={{ fontSize: '2rem', fontWeight: 900, margin: '0.5rem 0', color: '#000000' }}>System &amp; Sortiment</h1>
+        <h1 style={{ fontSize: '2rem', fontWeight 900, margin: '0.5rem 0', color: '#000000' }}>System &amp; Sortiment</h1>
         <p className="lede" style={{ color: '#6b7280' }}>Pflege das Sortiment und prüfe API sowie..."</p>
       </section>
 
