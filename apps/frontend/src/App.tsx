@@ -67,10 +67,9 @@ const emptyCheckoutForm: CheckoutFormState = {
 let analyticsPosted = false
 
 export default function App() {
-  const [route, setRoute] = useState<Route>(() => {
-    return window.location.pathname === '/admin/panel' ? 'admin' : 'shop'
-  })
+  const [route, setRoute] = useState<Route>(() => window.location.pathname === '/admin/panel' ? 'admin' : 'shop')
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false)
+  const isAdminAuthenticatedRef = React.useRef(false)
   const [analyticsId, setAnalyticsId] = useState(getOrCreateAnalyticsId)
   const [products, setProducts] = useState<ProductDTO[]>([])
   const [productsLoading, setProductsLoading] = useState(true)
@@ -91,11 +90,12 @@ export default function App() {
     const handlePopState = () => {
       const currentPath = window.location.pathname
       if (currentPath === '/admin/panel') {
-        if (isAdminAuthenticated) {
+        if (isAdminAuthenticatedRef.current) {
           setRoute('admin')
         } else {
           const password = window.prompt('Bitte Admin-Passwort eingeben:')
           if (password === ADMIN_PASSWORD) {
+            isAdminAuthenticatedRef.current = true
             setIsAdminAuthenticated(true)
             setRoute('admin')
           } else {
@@ -111,7 +111,7 @@ export default function App() {
 
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
-  }, [isAdminAuthenticated])
+  }, [])
 
   useEffect(() => {
     if (!analyticsPosted) {
@@ -170,12 +170,13 @@ export default function App() {
 
   function navigate(nextRoute: Route) {
     if (nextRoute === 'admin') {
-      if (isAdminAuthenticated) {
+      if (isAdminAuthenticatedRef.current) {
         window.history.pushState({}, '', '/admin/panel')
         setRoute('admin')
       } else {
         const password = window.prompt('Bitte Admin-Passwort eingeben:')
         if (password === ADMIN_PASSWORD) {
+          isAdminAuthenticatedRef.current = true
           setIsAdminAuthenticated(true)
           window.history.pushState({}, '', '/admin/panel')
           setRoute('admin')
@@ -861,7 +862,7 @@ function AdminStatus() {
   return (
     <section className="section-band status-section" style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '1rem', padding: '1.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0', color: '#000000' }}>System- &amp; API-Status</h2>
+        <h2 style={{ fontSize: '1.25rem', fontWeight 800, margin: '0', color: '#000000' }}>System- &amp; API-Status</h2>
         <button type="button" onClick={() => { void loadStatuses() }} style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}>Neu prüfen</button>
       </div>
       {loading && <StateMessage title="Status wird geladen..." />}
