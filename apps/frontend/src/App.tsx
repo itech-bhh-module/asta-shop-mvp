@@ -67,7 +67,7 @@ const emptyCheckoutForm: CheckoutFormState = {
 let analyticsPosted = false
 
 export default function App() {
-  const [route, setRoute] = useState<Route>('shop')
+  const [route, setRoute] = useState<Route>(() => window.location.pathname === '/admin/panel' ? 'admin' : 'shop')
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false)
   const [analyticsId, setAnalyticsId] = useState(getOrCreateAnalyticsId)
   const [products, setProducts] = useState<ProductDTO[]>([])
@@ -107,10 +107,12 @@ export default function App() {
   }, [isAdminAuthenticated])
 
   useEffect(() => {
-    handleRouting()
+    if (window.location.pathname === '/admin/panel' && !isAdminAuthenticated) {
+      handleRouting()
+    }
     window.addEventListener('popstate', handleRouting)
     return () => window.removeEventListener('popstate', handleRouting)
-  }, [handleRouting])
+  }, [handleRouting, isAdminAuthenticated])
 
   useEffect(() => {
     if (!analyticsPosted) {
@@ -441,8 +443,7 @@ function ShopView({
             setCheckoutForm={setCheckoutForm} 
             isSubmittingOrder={isSubmittingOrder} 
             onCheckoutSubmit={onCheckoutSubmit} 
-            setIsCheckoutView={setIsCheckoutView} 
-          />
+            setIsCheckoutView={setIsCheckoutView} />
         ) : (
           <ProductGrid 
             products={products} 
@@ -452,8 +453,7 @@ function ShopView({
             cartProductIds={cartProductIds} 
             onRefreshProducts={onRefreshProducts} 
             onAddToCart={onAddToCart} 
-            onSelectProduct={onSelectProduct} 
-          />
+            onSelectProduct={onSelectProduct} />
         )}
       </div>
 
@@ -475,35 +475,41 @@ function ShopView({
           isCheckoutView={isCheckoutView} 
           setIsCheckoutView={setIsCheckoutView} 
           onChangeQuantity={onChangeQuantity} 
-          onRemoveFromCart={onRemoveFromCart} 
-        />
+          onRemoveFromCart={onRemoveFromCart} />
 
         <DetailWidget 
           detailLoading={detailLoading} 
           detailError={detailError} 
-          selectedProduct={selectedProduct} 
-        />
+          selectedProduct={selectedProduct} />
       </aside>
     </div>
   )
 }
 
-function CheckoutForm({ checkoutForm, setCheckoutForm, isSubmittingOrder, onCheckoutSubmit, setIsCheckoutView }: any) {
+interface CheckoutFormProps {
+  checkoutForm: CheckoutFormState
+  setCheckoutForm: React.Dispatch<React.SetStateAction<CheckoutFormState>>
+  isSubmittingOrder: boolean
+  onCheckoutSubmit: (event: React.FormEvent) => Promise<void>
+  setIsCheckoutView: React.Dispatch<React.SetStateAction<boolean>>
+}
+
+function CheckoutForm({ checkoutForm, setCheckoutForm, isSubmittingOrder, onCheckoutSubmit, setIsCheckoutView }: CheckoutFormProps) {
   return (
     <section style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', padding: '2.5rem', borderRadius: '1rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
       <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '1.5rem', color: '#000000' }}>Kontaktdaten &amp; Abholort</h2>
-      <form onSubmit={onCheckoutSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <form onSubmit={(e) => { void onCheckoutSubmit(e) }} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontWeight: 'bold', fontSize: '0.875rem', color: '#374151' }}>
           Dein Name *
-          <input type="text" required value={checkoutForm.name} onChange={e => setCheckoutForm((prev: any) => ({...prev, name: e.target.value}))} style={{ padding: '0.65rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.95rem' }} placeholder="Max Mustermann" />
+          <input type="text" required value={checkoutForm.name} onChange={e => setCheckoutForm(prev => ({...prev, name: e.target.value}))} style={{ padding: '0.65rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.95rem' }} placeholder="Max Mustermann" />
         </label>
         <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontWeight: 'bold', fontSize: '0.875rem', color: '#374151' }}>
           Studierenden-E-Mail *
-          <input type="email" required value={checkoutForm.email} onChange={e => setCheckoutForm((prev: any) => ({...prev, email: e.target.value}))} style={{ padding: '0.65rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.95rem' }} placeholder="max@stud.bhh.de" />
+          <input type="email" required value={checkoutForm.email} onChange={e => setCheckoutForm(prev => ({...prev, email: e.target.value}))} style={{ padding: '0.65rem', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.95rem' }} placeholder="max@stud.bhh.de" />
         </label>
         <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontWeight: 'bold', fontSize: '0.875rem', color: '#374151' }}>
           Wo möchtest du die Bestellung abholen?
-          <select value={checkoutForm.pickupLocation} onChange={e => setCheckoutForm((prev: any) => ({...prev, pickupLocation: e.target.value}))} style={{ padding: '0.65rem', border: '1px solid #d1d5db', borderRadius: '6px', backgroundColor: '#fff', fontSize: '0.95rem', cursor: 'pointer' }}>
+          <select value={checkoutForm.pickupLocation} onChange={e => setCheckoutForm(prev => ({...prev, pickupLocation: e.target.value}))} style={{ padding: '0.65rem', border: '1px solid #d1d5db', borderRadius: '6px', backgroundColor: '#fff', fontSize: '0.95rem', cursor: 'pointer' }}>
             <option value="ASTA_OFFICE">AStA Büro (Hauptcampus)</option>
             <option value="CAMPUS_HALL_EVENT">Nächstes Campus-Event (Info-Stand)</option>
           </select>
@@ -521,7 +527,18 @@ function CheckoutForm({ checkoutForm, setCheckoutForm, isSubmittingOrder, onChec
   )
 }
 
-function ProductGrid({ products, productsLoading, productsError, productCount, cartProductIds, onRefreshProducts, onAddToCart, onSelectProduct }: any) {
+interface ProductGridProps {
+  products: ProductDTO[]
+  productsLoading: boolean
+  productsError: string
+  productCount: number
+  cartProductIds: Set<string>
+  onRefreshProducts: () => Promise<void>
+  onAddToCart: (product: ProductDTO) => void
+  onSelectProduct: (publicId: string | null) => Promise<void>
+}
+
+function ProductGrid({ products, productsLoading, productsError, productCount, cartProductIds, onRefreshProducts, onAddToCart, onSelectProduct }: ProductGridProps) {
   return (
     <>
       <section style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', padding: '3rem', borderRadius: '1rem', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
@@ -529,7 +546,7 @@ function ProductGrid({ products, productsLoading, productsError, productCount, c
         <h1 style={{ fontSize: '2.5rem', fontWeight: '900', marginTop: '0.5rem', marginBottom: '1rem', color: '#000000', letterSpacing: '-0.025em' }}>Dein Campus. Dein Style.</h1>
         <p style={{ color: '#4b5563', maxWidth: '600px', fontSize: '1.125rem' }}>Offizieller Merch der Beruflichen Hochschule Hamburg.</p>
         <div style={{ marginTop: '1.75rem', display: 'flex', gap: '1.25rem', alignItems: 'center' }}>
-          <button type="button" onClick={() => void onRefreshProducts()} style={{ padding: '0.625rem 1.25rem', background: '#fff', border: '1px solid #d1d5db', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 500, fontSize: '0.875rem', color: '#374151' }}>
+          <button type="button" onClick={() => { void onRefreshProducts() }} style={{ padding: '0.625rem 1.25rem', background: '#fff', border: '1px solid #d1d5db', borderRadius: '0.5rem', cursor: 'pointer', fontWeight: 500, fontSize: '0.875rem', color: '#374151' }}>
             Kollektion aktualisieren
           </button>
           <small style={{ color: '#9ca3af', fontSize: '0.875rem' }}>{productCount} Artikel verfügbar</small>
@@ -544,9 +561,8 @@ function ProductGrid({ products, productsLoading, productsError, productCount, c
               key={product.publicId ?? product.name}
               isInCart={product.publicId ? cartProductIds.has(product.publicId) : false}
               onAddToCart={() => onAddToCart(product)}
-              onSelect={() => onSelectProduct(product.publicId)}
-              product={product}
-            />
+              onSelect={() => { void onSelectProduct(product.publicId) }}
+              product={product} />
           ))}
         </div>
       </section>
@@ -554,7 +570,20 @@ function ProductGrid({ products, productsLoading, productsError, productCount, c
   )
 }
 
-function CartWidget({ uniqueCartList, products, cartLoading, cartError, orderNotice, totalCartPrice, isCheckoutView, setIsCheckoutView, onChangeQuantity, onRemoveFromCart }: any) {
+interface CartWidgetProps {
+  uniqueCartList: Array<{ publicProductId: string; amountSelected: number }>
+  products: ProductDTO[]
+  cartLoading: boolean
+  cartError: string
+  orderNotice: Notice | null
+  totalCartPrice: number
+  isCheckoutView: boolean
+  setIsCheckoutView: React.Dispatch<React.SetStateAction<boolean>>
+  onChangeQuantity: (id: string, current: number, delta: number) => Promise<void>
+  onRemoveFromCart: (id: string) => Promise<void>
+}
+
+function CartWidget({ uniqueCartList, products, cartLoading, cartError, orderNotice, totalCartPrice, isCheckoutView, setIsCheckoutView, onChangeQuantity, onRemoveFromCart }: CartWidgetProps) {
   return (
     <div style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.04), 0 2px 4px -1px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', minHeight: '300px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem', marginBottom: '1rem' }}>
@@ -588,7 +617,13 @@ function CartWidget({ uniqueCartList, products, cartLoading, cartError, orderNot
   )
 }
 
-function DetailWidget({ detailLoading, detailError, selectedProduct }: any) {
+interface DetailWidgetProps {
+  detailLoading: boolean
+  detailError: string
+  selectedProduct: ProductDTO | null
+}
+
+function DetailWidget({ detailLoading, detailError, selectedProduct }: DetailWidgetProps) {
   return (
     <div style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '1rem', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
       <h2 style={{ fontSize: '1.125rem', fontWeight: 800, margin: 0, borderBottom: '1px solid #e5e7eb', paddingBottom: '0.75rem', marginBottom: '1rem', color: '#000000' }}>Details</h2>
@@ -620,7 +655,14 @@ function ProductCard({ isInCart, onAddToCart, onSelect, product }: { isInCart: b
   )
 }
 
-function CartList({ cartItems, onRemoveFromCart, onChangeQuantity, products }: { cartItems: any[]; onRemoveFromCart: (id: string) => void; onChangeQuantity: (id: string, current: number, delta: number) => void; products: ProductDTO[] }) {
+interface CartListProps {
+  cartItems: Array<{ publicProductId: string; amountSelected: number }>
+  onRemoveFromCart: (id: string) => Promise<void>
+  onChangeQuantity: (id: string, current: number, delta: number) => Promise<void>
+  products: ProductDTO[]
+}
+
+function CartList({ cartItems, onRemoveFromCart, onChangeQuantity, products }: CartListProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       {cartItems.map((item, index) => {
@@ -634,12 +676,12 @@ function CartList({ cartItems, onRemoveFromCart, onChangeQuantity, products }: {
                 {product ? formatPrice(product.price * item.amountSelected) : ''}
               </p>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.35rem' }}>
-                <button type="button" onClick={(e) => { e.stopPropagation(); onChangeQuantity(item.publicProductId, item.amountSelected, -1) }} style={{ padding: '1px 6px', border: '1px solid #d1d5db', background: '#fff', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.75rem' }}>-</button>
+                <button type="button" onClick={(e) => { e.stopPropagation(); void onChangeQuantity(item.publicProductId, item.amountSelected, -1) }} style={{ padding: '1px 6px', border: '1px solid #d1d5db', background: '#fff', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.75rem' }}>-</button>
                 <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#000000', minWidth: '1rem', textAlign: 'center' }}>{item.amountSelected}</span>
-                <button type="button" onClick={(e) => { e.stopPropagation(); onChangeQuantity(item.publicProductId, item.amountSelected, 1) }} style={{ padding: '1px 6px', border: '1px solid #d1d5db', background: '#fff', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.75rem' }}>+</button>
+                <button type="button" onClick={(e) => { e.stopPropagation(); void onChangeQuantity(item.publicProductId, item.amountSelected, 1) }} style={{ padding: '1px 6px', border: '1px solid #d1d5db', background: '#fff', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.75rem' }}>+</button>
               </div>
             </div>
-            <button type="button" onClick={(e) => { e.stopPropagation(); onRemoveFromCart(item.publicProductId) }} style={{ padding: '0.25rem 0.5rem', fontSize: '0.725rem', color: '#ef4444', backgroundColor: '#fee2e2', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: 600 }}>
+            <button type="button" onClick={(e) => { e.stopPropagation(); void onRemoveFromCart(item.publicProductId) }} style={{ padding: '0.25rem 0.5rem', fontSize: '0.725rem', color: '#ef4444', backgroundColor: '#fee2e2', border: 'none', borderRadius: '0.375rem', cursor: 'pointer', fontWeight: 600 }}>
               Löschen
             </button>
           </article>
@@ -667,7 +709,14 @@ function ProductDetail({ product }: { product: ProductDTO }) {
   )
 }
 
-function AdminPanel({ onRefreshProducts, products, productsError, productsLoading }: any) {
+interface AdminPanelProps {
+  onRefreshProducts: () => Promise<void>
+  products: ProductDTO[]
+  productsError: string
+  productsLoading: boolean
+}
+
+function AdminPanel({ onRefreshProducts, products, productsError, productsLoading }: AdminPanelProps) {
   const [form, setForm] = useState<ProductFormState>(emptyProductForm)
   const [notice, setNotice] = useState<Notice | null>(null)
   const [saving, setSaving] = useState(false)
@@ -750,14 +799,14 @@ function AdminPanel({ onRefreshProducts, products, productsError, productsLoadin
       <section className="admin-head" style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '2rem' }}>
         <p className="eyebrow" style={{ color: '#008296', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.75rem' }}>Admin Dashboard</p>
         <h1 style={{ fontSize: '2rem', fontWeight: 900, margin: '0.5rem 0', color: '#000000' }}>System &amp; Sortiment</h1>
-        <p className="lede" style={{ color: '#6b7280' }}>Pflege das Sortiment und prüfe API sowie Datenbank über die Health-Endpunkte.</p>
+        <p className="lede" style={{ color: '#6b7280' }}>Pflege das Sortiment und prüfe API sowie..."</p>
       </section>
 
       <AdminStatus />
 
       <section className="admin-layout" style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '3rem', alignItems: 'start' }}>
         <div style={{ position: 'sticky', top: '6rem', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '1rem', padding: '1.5rem' }}>
-          <form onSubmit={(e) => void submitProduct(e)} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <form onSubmit={(e) => { void submitProduct(e) }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem' }}>
               <div>
                 <p style={{ fontSize: '0.65rem', color: '#6b7280', textTransform: 'uppercase', fontWeight: 'bold', margin: 0 }}>{isEditing ? 'Bearbeiten' : 'Neu'}</p>
@@ -788,7 +837,7 @@ function AdminPanel({ onRefreshProducts, products, productsError, productsLoadin
         <section style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', padding: '1.5rem', borderRadius: '1rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
             <h2 style={{ color: '#000000' }}>Produkte verwalten</h2>
-            <button type="button" onClick={() => void onRefreshProducts()} style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}>Neu laden</button>
+            <button type="button" onClick={() => { void onRefreshProducts() }} style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}>Neu laden</button>
           </div>
           {productsLoading && <StateMessage title="Produkte werden geladen..." />}
           {productsError && <StateMessage tone="error" title={productsError} />}
@@ -805,7 +854,7 @@ function AdminPanel({ onRefreshProducts, products, productsError, productsLoadin
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button type="button" onClick={() => editProduct(product)} style={{ padding: '4px 8px', cursor: 'pointer' }}>Edit</button>
-                  <button type="button" disabled={product.status === 'INACTIVE'} onClick={() => void setInactive(product)} style={{ padding: '4px 8px', background: '#fee2e2', color: '#ef4444', border: 'none', cursor: 'pointer' }}>Inaktiv</button>
+                  <button type="button" disabled={product.status === 'INACTIVE'} onClick={() => { void setInactive(product) }} style={{ padding: '4px 8px', background: '#fee2e2', color: '#ef4444', border: 'none', cursor: 'pointer' }}>Inaktiv</button>
                 </div>
               </div>
           ))}
@@ -833,7 +882,7 @@ function AdminStatus() {
     <section className="section-band status-section" style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '1rem', padding: '1.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0', color: '#000000' }}>System- &amp; API-Status</h2>
-        <button type="button" onClick={() => void loadStatuses()} style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}>Neu prüfen</button>
+        <button type="button" onClick={() => { void loadStatuses() }} style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}>Neu prüfen</button>
       </div>
       {loading && <StateMessage title="Status wird geladen..." />}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
