@@ -67,7 +67,7 @@ let analyticsPosted = false
 
 export default function App() {
   const [route, setRoute] = useState<Route>(() => window.location.pathname === '/admin/panel' ? 'admin' : 'shop')
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(true)
+  const [isAdminAuthenticated] = useState(true)
   const [analyticsId, setAnalyticsId] = useState(getOrCreateAnalyticsId)
   const [products, setProducts] = useState<ProductDTO[]>([])
   const [productsLoading, setProductsLoading] = useState(true)
