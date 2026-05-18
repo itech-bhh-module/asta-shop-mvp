@@ -9,6 +9,7 @@ env:
   MAIN_SHA: $(git show --format="%H" --no-patch origin/main)
   GHCR_IMAGE: "ghcr.io/${{ github.repository }}/backend:ea35f7fcc5416cf15e2b825ef915ea5868e79fab"
   CONTAINER_NAME: "backend-ea35f7fcc5416cf15e2b825ef915ea5868e79fab"
+  #test
   INTERNAL_PORT: 8081
   EXTERNAL_PORT: 8081
 
