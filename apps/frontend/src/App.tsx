@@ -535,7 +535,7 @@ interface ProductGridProps {
   cartProductIds: Set<string>
   onRefreshProducts: () => Promise<void>
   onAddToCart: (product: ProductDTO) => void
-  onSelectProduct: (publicId: string | null) => Promise<void>
+  onSelectProduct: (publicId: string | null) => void
 }
 
 function ProductGrid({ products, productsLoading, productsError, productCount, cartProductIds, onRefreshProducts, onAddToCart, onSelectProduct }: ProductGridProps) {
@@ -555,13 +555,13 @@ function ProductGrid({ products, productsLoading, productsError, productCount, c
       <section>
         {productsLoading && <StateMessage title="Produkte werden geladen..." />}
         {productsError && <StateMessage tone="error" title={productsError} />}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.5rem' }}>
           {products.map((product: ProductDTO) => (
             <ProductCard
               key={product.publicId ?? product.name}
               isInCart={product.publicId ? cartProductIds.has(product.publicId) : false}
               onAddToCart={() => onAddToCart(product)}
-              onSelect={() => { void onSelectProduct(product.publicId) }}
+              onSelect={() => { onSelectProduct(product.publicId) }}
               product={product} />
           ))}
         </div>
