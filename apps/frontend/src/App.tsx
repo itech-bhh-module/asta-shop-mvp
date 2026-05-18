@@ -21,7 +21,6 @@ import {
 import './App.css'
 
 const ANALYTICS_STORAGE_KEY = 'asta.analyticsId'
-const ADMIN_PASSWORD = 'admin'
 
 type Route = 'shop' | 'admin'
 
@@ -68,7 +67,7 @@ let analyticsPosted = false
 
 export default function App() {
   const [route, setRoute] = useState<Route>(() => window.location.pathname === '/admin/panel' ? 'admin' : 'shop')
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false)
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(true)
   const [analyticsId, setAnalyticsId] = useState(getOrCreateAnalyticsId)
   const [products, setProducts] = useState<ProductDTO[]>([])
   const [productsLoading, setProductsLoading] = useState(true)
@@ -88,31 +87,19 @@ export default function App() {
   const handleRouting = useCallback(() => {
     const currentPath = window.location.pathname
     if (currentPath === '/admin/panel') {
-      if (isAdminAuthenticated) {
-        setRoute('admin')
-      } else {
-        const password = window.prompt('Bitte Admin-Passwort eingeben:')
-        if (password === ADMIN_PASSWORD) {
-          setIsAdminAuthenticated(true)
-          setRoute('admin')
-        } else {
-          alert('Falsches Passwort!')
-          window.history.pushState({}, '', '/')
-          setRoute('shop')
-        }
-      }
+      setRoute('admin')
     } else {
       setRoute('shop')
     }
-  }, [isAdminAuthenticated])
+  }, [])
 
   useEffect(() => {
-    if (window.location.pathname === '/admin/panel' && !isAdminAuthenticated) {
+    if (window.location.pathname === '/admin/panel') {
       handleRouting()
     }
     window.addEventListener('popstate', handleRouting)
     return () => window.removeEventListener('popstate', handleRouting)
-  }, [handleRouting, isAdminAuthenticated])
+  }, [handleRouting])
 
   useEffect(() => {
     if (!analyticsPosted) {
