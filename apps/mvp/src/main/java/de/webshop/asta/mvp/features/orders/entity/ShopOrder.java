@@ -49,6 +49,10 @@ public class ShopOrder {
     private OrderStatus status = OrderStatus.PENDING;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method", nullable = false)
+    private PaymentMethod paymentMethod;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "pickup_station", nullable = false)
     private PickupStation pickupStation;
 
