@@ -1,0 +1,1 @@
+ALTER TABLE shop_orders ADD COLUMN session_id UUID;

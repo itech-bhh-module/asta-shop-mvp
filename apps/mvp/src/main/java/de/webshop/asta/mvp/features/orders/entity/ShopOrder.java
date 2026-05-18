@@ -38,6 +38,9 @@ public class ShopOrder {
     @Column(nullable = false, unique = true)
     private UUID publicId = UUID.randomUUID();
 
+    @Column(name = "session_id")
+    private UUID sessionId;
+
     @CreationTimestamp
     private LocalDateTime orderDate;
 

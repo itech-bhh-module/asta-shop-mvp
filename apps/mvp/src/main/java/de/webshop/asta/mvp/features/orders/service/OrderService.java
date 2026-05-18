@@ -24,6 +24,8 @@ public class OrderService {
     public ShopOrder createOrder(OrderRequestDTO orderRequest) {
         ShopOrder order = new ShopOrder();
         
+        order.setSessionId(orderRequest.getSessionId());
+        
         if (orderRequest.getPublicId() != null) {
             order.setPublicId(orderRequest.getPublicId());
         }
