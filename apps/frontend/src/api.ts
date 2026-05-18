@@ -61,7 +61,16 @@ export type EndpointStatus = {
   details?: string
 }
 
-// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api'
+export type OrderItemRequestDTO = {
+  productId: string
+  quantity: number
+}
+
+export type OrderRequestDTO = {
+  publicId?: string | null
+  items: OrderItemRequestDTO[]
+}
+
 const API_BASE_URL = "http://localhost:8081/api"
 
 async function requestJson<T>(
@@ -163,6 +172,13 @@ export function removeFromCart(analyticsId: string, publicProductId: string) {
       method: 'POST',
     },
   )
+}
+
+export function createOrder(orderData: OrderRequestDTO) {
+  return requestJson<unknown>('/order/createOrder', {
+    method: 'POST',
+    body: JSON.stringify(orderData),
+  })
 }
 
 export function checkApiHealth() {
