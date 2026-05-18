@@ -1,8 +1,11 @@
 package de.webshop.asta.mvp.features.analytics.service;
 
 import de.webshop.asta.mvp.features.analytics.dto.SessionDTO;
+import de.webshop.asta.mvp.features.analytics.dto.SessionResponseDTO; 
 import de.webshop.asta.mvp.features.analytics.entity.Session;
 import de.webshop.asta.mvp.features.analytics.repository.AnalyticsRepository;
+import de.webshop.asta.mvp.features.analytics.service.AnalyticsMapper;
+import de.webshop.asta.mvp.features.analytics.service.SessionDbManagementService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,7 +44,7 @@ class SessionDbManagementServiceTest {
         when(mapper.toSession(dto)).thenReturn(newSession);
         when(analyticsRepository.save(newSession)).thenReturn(newSession);
 
-        Session result = service.addSessionObject(dto);
+        SessionResponseDTO result = service.addSessionObject(dto);
 
         assertEquals(newId, result.getAnalyticsId());
         verify(analyticsRepository, times(1)).save(any(Session.class)); 
@@ -56,9 +59,9 @@ class SessionDbManagementServiceTest {
 
         when(analyticsRepository.findFirstSessionByAnalyticsId(existingId)).thenReturn(Optional.of(existingSession));
 
-        Session result = service.addSessionObject(dto);
+        SessionResponseDTO result = service.addSessionObject(dto);
 
-        assertEquals(99L, result.getSessionId()); 
-        verify(analyticsRepository, never()).save(any(Session.class));
+        assertEquals(existingId, result.getAnalyticsId()); 
+        verify(analyticsRepository, never()).save(any(Session.class)); 
     }
 }

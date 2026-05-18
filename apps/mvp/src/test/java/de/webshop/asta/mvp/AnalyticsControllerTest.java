@@ -1,13 +1,14 @@
 package de.webshop.asta.mvp.features.analytics.controller;
 
+import de.webshop.asta.mvp.features.analytics.controller.AnalyticsController;
 import de.webshop.asta.mvp.features.analytics.dto.SessionDTO;
-import de.webshop.asta.mvp.features.analytics.entity.Session;
+import de.webshop.asta.mvp.features.analytics.dto.SessionResponseDTO;
 import de.webshop.asta.mvp.features.analytics.service.SessionDbManagementService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc; 
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
@@ -21,7 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AnalyticsController.class)
-@AutoConfigureMockMvc(addFilters = false) 
+@AutoConfigureMockMvc(addFilters = false)
 class AnalyticsControllerTest {
 
     @Autowired
@@ -35,8 +36,9 @@ class AnalyticsControllerTest {
     void shouldNotLeakInternalSessionId() throws Exception {
         UUID id = UUID.randomUUID();
         
-        Session internalSession = new Session(500L, id, Instant.now());
-        Mockito.when(sessionService.addSessionObject(Mockito.any(SessionDTO.class))).thenReturn(internalSession);
+        // FIX: Der Mock gibt jetzt korrekt das DTO zurück
+        SessionResponseDTO safeResponse = new SessionResponseDTO(id, Instant.now());
+        Mockito.when(sessionService.addSessionObject(Mockito.any(SessionDTO.class))).thenReturn(safeResponse);
 
         String requestJson = """
                 {
