@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useRef } from 'react'
 import {
   addProduct,
   addToCart,
@@ -64,8 +64,6 @@ const emptyCheckoutForm: CheckoutFormState = {
   pickupLocation: 'ASTA_OFFICE',
 }
 
-let analyticsPosted = false
-
 export default function App() {
   const [route, setRoute] = useState<Route>(() => window.location.pathname === '/admin/panel' ? 'admin' : 'shop')
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false)
@@ -85,13 +83,12 @@ export default function App() {
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false)
   const [orderNotice, setOrderNotice] = useState<Notice | null>(null)
 
-  // handleRouting prüft den aktuellen Pfad und gleicht den State ab.
-  // isAdminAuthenticated wird als Parameter übergeben, damit useCallback stabil bleibt 
-  // und nicht bei jedem State-Wechsel eine neue Funktionsreferenz erzeugt.
-  const handleRouting = useCallback((authenticated: boolean) => {
+  const analyticsPostedRef = useRef(false)
+
+  const handleRouting = useCallback(() => {
     const currentPath = window.location.pathname
     if (currentPath === '/admin/panel') {
-      if (authenticated) {
+      if (isAdminAuthenticated) {
         setRoute('admin')
       } else {
         const password = window.prompt('Bitte Admin-Passwort eingeben:')
@@ -107,28 +104,20 @@ export default function App() {
     } else {
       setRoute('shop')
     }
-  }, [])
+  }, [isAdminAuthenticated])
 
-  // Ein einziger, sauberer Effekt für das Mounten des Event-Listeners.
-  // Verhindert Linter-Warnungen und unendliche Update-Schleifen.
+  // Korrigierter Routing Effect ohne Linter-Warnungen und Endlosschleifen
   useEffect(() => {
-    // Initialer Check beim Laden der Seite
-    handleRouting(isAdminAuthenticated)
-
-    const onPopState = () => {
-      // Nutzt den aktuellsten State über den Callback-Ref-Ansatz oder liest ihn direkt aus
-      handleRouting(isAdminAuthenticated)
+    if (window.location.pathname === '/admin/panel' && !isAdminAuthenticated) {
+      handleRouting()
     }
-
-    window.addEventListener('popstate', onPopState)
-    return () => {
-      window.removeEventListener('popstate', onPopState)
-    }
+    window.addEventListener('popstate', handleRouting)
+    return () => window.removeEventListener('popstate', handleRouting)
   }, [handleRouting, isAdminAuthenticated])
 
   useEffect(() => {
-    if (!analyticsPosted) {
-      analyticsPosted = true
+    if (!analyticsPostedRef.current) {
+      analyticsPostedRef.current = true
       postSession({
         analyticsId,
         loginTimestamp: new Date().toISOString(),
@@ -184,8 +173,7 @@ export default function App() {
   function navigate(nextRoute: Route) {
     const path = nextRoute === 'admin' ? '/admin/panel' : '/'
     window.history.pushState({}, '', path)
-    // Direktes Triggern nach dem PushState mit dem aktuellen Authentifizierungsstatus
-    handleRouting(isAdminAuthenticated)
+    handleRouting()
   }
 
   async function selectProduct(publicId: string | null) {
@@ -205,6 +193,16 @@ export default function App() {
       setDetailError(readError(error, 'Produktdetails konnten nicht geladen werden.'))
     } finally {
       setDetailLoading(false)
+    }
+  }
+
+  async function removeProductFromCart(publicProductId: string) {
+    setCartError('')
+    try {
+      const nextCart = await removeFromCart(analyticsId, publicProductId)
+      setCartItems(nextCart)
+    } catch (error) {
+      setCartError(readError(error, 'Produkt konnte nicht aus dem Warenkorb entfernt werden.'))
     }
   }
 
@@ -240,16 +238,6 @@ export default function App() {
     await changeProductQuantity(product.publicId, currentQty, 1)
   }
 
-  async function removeProductFromCart(publicProductId: string) {
-    setCartError('')
-    try {
-      const nextCart = await removeFromCart(analyticsId, publicProductId)
-      setCartItems(nextCart)
-    } catch (error) {
-      setCartError(readError(error, 'Produkt konnte nicht aus dem Warenkorb entfernt werden.'))
-    }
-  }
-
   async function handleCheckoutSubmit(event: React.FormEvent) {
     event.preventDefault()
     if (!checkoutForm.name || !checkoutForm.email) {
@@ -280,7 +268,7 @@ export default function App() {
         text: `Vielen Dank, ${checkoutForm.name}! Deine Bestellung wurde übermittelt. Abholung hinterlegt für: ${locationText}. Eine Infomail wird an ${checkoutForm.email} gesendet.` 
       })
       
-      analyticsPosted = false
+      analyticsPostedRef.current = false
       setAnalyticsId(createNewAnalyticsId())
       setCartItems([]) 
       setIsCheckoutView(false)
@@ -385,9 +373,9 @@ interface ShopViewProps {
   detailLoading: boolean
   onAddToCart: (product: ProductDTO) => void
   onRefreshProducts: () => Promise<void>
-  onRemoveFromCart: (id: string) => void
-  onChangeQuantity: (id: string, current: number, delta: number) => void
-  onSelectProduct: (id: string | null) => void
+  onRemoveFromCart: (id: string) => Promise<void>
+  onChangeQuantity: (id: string, current: number, delta: number) => Promise<void>
+  onSelectProduct: (id: string | null) => Promise<void>
   productCount: number
   products: ProductDTO[]
   productsError: string
@@ -569,9 +557,9 @@ function ProductGrid({ products, productsLoading, productsError, productCount, c
         {productsLoading && <StateMessage title="Produkte werden geladen..." />}
         {productsError && <StateMessage tone="error" title={productsError} />}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.5rem' }}>
-          {products.map((product: ProductDTO) => (
+          {products.map((product: ProductDTO, index) => (
             <ProductCard
-              key={product.publicId ?? product.name}
+              key={product.publicId ?? `${product.name}-${index}`}
               isInCart={product.publicId ? cartProductIds.has(product.publicId) : false}
               onAddToCart={() => onAddToCart(product)}
               onSelect={() => { void onSelectProduct(product.publicId) }}
@@ -811,7 +799,7 @@ function AdminPanel({ onRefreshProducts, products, productsError, productsLoadin
     <div className="page-grid admin-page" style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
       <section className="admin-head" style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '2rem' }}>
         <p className="eyebrow" style={{ color: '#008296', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.75rem' }}>Admin Dashboard</p>
-        <h1 style={{ fontSize: '2rem', fontWeight 900, margin: '0.5rem 0', color: '#000000' }}>System &amp; Sortiment</h1>
+        <h1 style={{ fontSize: '2rem', fontWeight: 900, margin: '0.5rem 0', color: '#000000' }}>System &amp; Sortiment</h1>
         <p className="lede" style={{ color: '#6b7280' }}>Pflege das Sortiment und prüfe API sowie..."</p>
       </section>
 
@@ -855,8 +843,8 @@ function AdminPanel({ onRefreshProducts, products, productsError, productsLoadin
           {productsLoading && <StateMessage title="Produkte werden geladen..." />}
           {productsError && <StateMessage tone="error" title={productsError} />}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {products.map((product: ProductDTO) => (
-              <div key={product.publicId ?? product.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', border: '1px solid #f3f4f6', borderRadius: '8px' }}>
+            {products.map((product: ProductDTO, index) => (
+              <div key={product.publicId ?? `${product.name}-${index}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', border: '1px solid #f3f4f6', borderRadius: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ width: '50px', height: '50px', borderRadius: '4px', overflow: 'hidden' }}><ProductImage imagePath={product.imagePath} name={product.name} /></div>
                   <div>
@@ -870,11 +858,11 @@ function AdminPanel({ onRefreshProducts, products, productsError, productsLoadin
                   <button type="button" disabled={product.status === 'INACTIVE'} onClick={() => { void setInactive(product) }} style={{ padding: '4px 8px', background: '#fee2e2', color: '#ef4444', border: 'none', cursor: 'pointer' }}>Inaktiv</button>
                 </div>
               </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </section>
       </section>
-    </section>
-  </div>
+    </div>
   )
 }
 
@@ -886,10 +874,12 @@ function AdminStatus() {
     setLoading(true)
     const nextStatuses = await Promise.all([checkApiHealth(), checkActuatorHealth(), checkDatabaseHealth()])
     setStatuses(nextStatuses)
-    setLoading(false)
-  }, [])
+    loading && setLoading(false)
+  }, [loading])
 
-  useEffect(() => { queueMicrotask(() => { void loadStatuses() }) }, [loadStatuses])
+  useEffect(() => { 
+    queueMicrotask(() => { void loadStatuses() }) 
+  }, [loadStatuses])
 
   return (
     <section className="section-band status-section" style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '1rem', padding: '1.5rem' }}>
