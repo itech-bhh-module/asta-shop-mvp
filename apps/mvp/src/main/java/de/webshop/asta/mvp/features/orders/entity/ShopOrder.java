@@ -48,6 +48,10 @@ public class ShopOrder {
     @Column(nullable = false)
     private OrderStatus status = OrderStatus.PENDING;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pickup_station", nullable = false)
+    private PickupStation pickupStation;
+
     @OneToMany(mappedBy = "shopOrder", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 }
