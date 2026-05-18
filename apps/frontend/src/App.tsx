@@ -67,7 +67,9 @@ const emptyCheckoutForm: CheckoutFormState = {
 let analyticsPosted = false
 
 export default function App() {
-  const [route, setRoute] = useState<Route>(() => window.location.pathname === '/admin/panel' ? 'admin' : 'shop')
+  const [route, setRoute] = useState<Route>(() => {
+    return window.location.pathname === '/admin/panel' ? 'admin' : 'shop'
+  })
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false)
   const [analyticsId, setAnalyticsId] = useState(getOrCreateAnalyticsId)
   const [products, setProducts] = useState<ProductDTO[]>([])
@@ -85,31 +87,31 @@ export default function App() {
   const [isSubmittingOrder, setIsSubmittingOrder] = useState(false)
   const [orderNotice, setOrderNotice] = useState<Notice | null>(null)
 
-  const handleRouting = useCallback(() => {
-    const currentPath = window.location.pathname
-    if (currentPath === '/admin/panel') {
-      if (isAdminAuthenticated) {
-        setRoute('admin')
-      } else {
-        const password = window.prompt('Bitte Admin-Passwort eingeben:')
-        if (password === ADMIN_PASSWORD) {
-          setIsAdminAuthenticated(true)
+  useEffect(() => {
+    const handlePopState = () => {
+      const currentPath = window.location.pathname
+      if (currentPath === '/admin/panel') {
+        if (isAdminAuthenticated) {
           setRoute('admin')
         } else {
-          alert('Falsches Passwort!')
-          window.history.pushState({}, '', '/')
-          setRoute('shop')
+          const password = window.prompt('Bitte Admin-Passwort eingeben:')
+          if (password === ADMIN_PASSWORD) {
+            setIsAdminAuthenticated(true)
+            setRoute('admin')
+          } else {
+            alert('Falsches Passwort!')
+            window.history.pushState({}, '', '/')
+            setRoute('shop')
+          }
         }
+      } else {
+        setRoute('shop')
       }
-    } else {
-      setRoute('shop')
     }
-  }, [isAdminAuthenticated])
 
-  useEffect(() => {
-    window.addEventListener('popstate', handleRouting)
-    return () => window.removeEventListener('popstate', handleRouting)
-  }, [handleRouting])
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [isAdminAuthenticated])
 
   useEffect(() => {
     if (!analyticsPosted) {
@@ -167,9 +169,24 @@ export default function App() {
   }, [loadCart])
 
   function navigate(nextRoute: Route) {
-    const path = nextRoute === 'admin' ? '/admin/panel' : '/'
-    window.history.pushState({}, '', path)
-    handleRouting()
+    if (nextRoute === 'admin') {
+      if (isAdminAuthenticated) {
+        window.history.pushState({}, '', '/admin/panel')
+        setRoute('admin')
+      } else {
+        const password = window.prompt('Bitte Admin-Passwort eingeben:')
+        if (password === ADMIN_PASSWORD) {
+          setIsAdminAuthenticated(true)
+          window.history.pushState({}, '', '/admin/panel')
+          setRoute('admin')
+        } else {
+          alert('Falsches Passwort!')
+        }
+      }
+    } else {
+      window.history.pushState({}, '', '/')
+      setRoute('shop')
+    }
   }
 
   async function selectProduct(publicId: string | null) {
@@ -636,27 +653,6 @@ function DetailWidget({ detailLoading, detailError, selectedProduct }: DetailWid
   )
 }
 
-function ProductCard({ isInCart, onAddToCart, onSelect, product }: { isInCart: boolean; onAddToCart: () => void; onSelect: () => void; product: ProductDTO }) {
-  return (
-    <article className="product-card" style={{ display: 'flex', flexDirection: 'column', border: '1px solid #e5e7eb', borderRadius: '1rem', overflow: 'hidden', backgroundColor: '#fff', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }} onClick={onSelect}>
-      <div style={{ height: '220px', backgroundColor: '#f9fafb' }}>
-        <ProductImage imagePath={product.imagePath} name={product.name} />
-      </div>
-      <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', flex: 1 }}>
-        <p style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: '#008296', marginBottom: '0.35rem', letterSpacing: '0.05em' }}>{product.tag || 'ohne Tag'}</p>
-        <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: '0 0 0.5rem 0', color: '#000000' }}>{product.name || 'Unbenannt'}</h3>
-        <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-          <strong style={{ fontSize: '1.35rem', fontWeight: '900', color: '#000000' }}>{formatPrice(product.price)}</strong>
-          <span style={{ fontSize: '0.75rem', color: '#6b7280', backgroundColor: '#f3f4f6', padding: '0.25rem 0.5rem', borderRadius: '0.375rem' }}>{product.amountInStock} auf Lager</span>
-        </div>
-        <button className="primary-button" disabled={isInCart} type="button" onClick={(e) => { e.stopPropagation(); onAddToCart(); }} style={{ width: '100%', padding: '0.75rem', borderRadius: '0.5rem', fontWeight: 'bold', backgroundColor: isInCart ? '#f3f4f6' : '#00416a', color: isInCart ? '#9ca3af' : '#fff', border: 'none', cursor: isInCart ? 'not-allowed' : 'pointer', fontSize: '0.9rem' }}>
-          {isInCart ? 'Im Warenkorb ✓' : 'Hinzufügen +'}
-        </button>
-      </div>
-    </article>
-  )
-}
-
 interface CartListProps {
   cartItems: Array<{ publicProductId: string; amountSelected: number }>
   onRemoveFromCart: (id: string) => void
@@ -689,24 +685,6 @@ function CartList({ cartItems, onRemoveFromCart, onChangeQuantity, products }: C
           </article>
         )
       })}
-    </div>
-  )
-}
-
-function ProductDetail({ product }: { product: ProductDTO }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      <div style={{ height: '150px', borderRadius: '0.5rem', overflow: 'hidden', backgroundColor: '#f3f4f6' }}>
-        <ProductImage imagePath={product.imagePath} name={product.name} />
-      </div>
-      <div>
-        <p style={{ fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 800, color: '#008296', margin: 0 }}>{product.tag || 'ohne Tag'}</p>
-        <h3 style={{ fontSize: '1.125rem', fontWeight: 800, margin: '0.25rem 0', color: '#000000' }}>{product.name}</h3>
-        <p style={{ fontSize: '0.85rem', color: '#4b5563', lineHeight: 1.4, marginBottom: '0.75rem' }}>{product.description || 'Keine Beschreibung hinterlegt.'}</p>
-        <div style={{ fontSize: '0.7rem', backgroundColor: '#f3f4f6', padding: '0.5rem', borderRadius: '0.375rem', fontFamily: 'monospace', color: '#6b7280' }}>
-          ID: {product.publicId?.slice(0, 8) ?? 'n/a'}
-        </div>
-      </div>
     </div>
   )
 }
@@ -883,7 +861,7 @@ function AdminStatus() {
   return (
     <section className="section-band status-section" style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '1rem', padding: '1.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0', color: '#000000' }}>System- &amp; API-Status</h2>
+        <h2 style={{ fontSize: '1.25rem', fontWeight 800, margin: '0', color: '#000000' }}>System- &amp; API-Status</h2>
         <button type="button" onClick={() => { void loadStatuses() }} style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}>Neu prüfen</button>
       </div>
       {loading && <StateMessage title="Status wird geladen..." />}
