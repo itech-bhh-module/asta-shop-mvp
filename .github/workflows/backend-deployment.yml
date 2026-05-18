@@ -1,0 +1,62 @@
+name: Deploy Backend
+
+on:
+  release:
+    types: [ published ]
+  workflow_dispatch:
+
+env:
+  GHCR_IMAGE: "ghcr.io/${{ github.repository }}/backend:${{ github.sha }}"
+  CONTAINER_NAME: "backend-${{ github.sha }}"
+  INTERNAL_PORT: 8081
+  EXTERNAL_PORT: 8081
+
+jobs:
+  deploy-to-testing:
+    runs-on: ubuntu-latest
+    environment: testing
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: "just-a-placeholder-so-we-dont-get-errors"
+
+      - name: Simuliere Backend-Tests
+        run: |
+          echo "Testing: Prüfe, ob Backend-Container läuft..."
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "
+            docker ps | grep ${{ env.CONTAINER_NAME }} || { echo 'Backend-Container läuft nicht!'; exit 1; }
+          "
+
+      - name: Deploy Backend (Testing)
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "
+            docker pull $GHCR_IMAGE && \
+            docker stop ${{ env.CONTAINER_NAME }} || true && \
+            docker rm ${{ env.CONTAINER_NAME }} || true && \
+            docker run -d --name ${{ env.CONTAINER_NAME }} -p ${{ env.EXTERNAL_PORT }}:${{ env.INTERNAL_PORT }} $GHCR_IMAGE
+          "
+
+  deploy-to-production:
+    needs: deploy-to-testing
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: "just-a-placeholder-so-we-dont-get-errors"
+
+      - name: Deploy Backend (Production)
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "
+            docker pull $GHCR_IMAGE && \
+            docker stop ${{ env.CONTAINER_NAME }} || true && \
+            docker rm ${{ env.CONTAINER_NAME }} || true && \
+            docker run -d --name ${{ env.CONTAINER_NAME }} -p ${{ env.EXTERNAL_PORT }}:${{ env.INTERNAL_PORT }} $GHCR_IMAGE
+          "
