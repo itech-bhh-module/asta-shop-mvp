@@ -25,6 +25,11 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           known_hosts: "just-a-placeholder-so-we-dont-get-errors"
 
+      - name: check ssh key existance
+        run: |
+          cd ~/.ssh/
+          ls -A
+
       - name: Simuliere Backend-Tests
         run: |
           echo "Testing: Prüfe, ob Backend-Container läuft..."
