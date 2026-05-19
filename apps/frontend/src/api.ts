@@ -23,14 +23,6 @@ export type CartDTO = {
   status: number
 }
 
-export type CartEntity = {
-  cartId: number
-  sessionId: number
-  productId: number
-  amountSelected: number
-  status: number
-}
-
 export type SessionDTO = {
   analyticsId: string
   loginTimestamp: string
@@ -159,7 +151,7 @@ export function getCart(analyticsId: string) {
 }
 
 export function addToCart(cartEntry: CartDTO) {
-  return requestJson<CartEntity>('/cart/addToCart', {
+  return requestJson<CartDTO>('/cart/addToCart', {
     method: 'POST',
     body: JSON.stringify(cartEntry),
   })

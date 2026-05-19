@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import de.webshop.asta.mvp.features.cart.dto.CartDTO;
-import de.webshop.asta.mvp.features.cart.entity.Cart;
 import de.webshop.asta.mvp.features.cart.service.CartDbManagementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,8 +28,7 @@ public class CartController {
     }
 
     @PostMapping("/addToCart")
-    public ResponseEntity<Cart> addToCart(@Valid @RequestBody CartDTO cartDTO){
-        //should expose cart to frontend in final version, this is just for dev
+    public ResponseEntity<CartDTO> addToCart(@Valid @RequestBody CartDTO cartDTO){
         return ResponseEntity.ok(cartDbManagementService.addToCart(cartDTO));
     }
 
