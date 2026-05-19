@@ -24,10 +24,10 @@ public class CartDbManagementService {
                 .toList();
     }
 
-    public Cart addToCart(CartDTO cartDTO) {
+    public CartDTO addToCart(CartDTO cartDTO) {
         Cart newCart = cartMapper.toCart(cartDTO);
 
-        return cartRepository.findBySessionIdAndProductId(
+        Cart savedCart = cartRepository.findBySessionIdAndProductId(
                         newCart.getSessionId(),
                         newCart.getProductId()
                 )
@@ -38,6 +38,8 @@ public class CartDbManagementService {
                     return cartRepository.save(existingCart);
                 })
                 .orElseGet(() -> cartRepository.save(newCart));
+
+        return cartMapper.toDto(savedCart);
     }
 
     public void removeFromCart(UUID analyticsId, UUID publicId) {
