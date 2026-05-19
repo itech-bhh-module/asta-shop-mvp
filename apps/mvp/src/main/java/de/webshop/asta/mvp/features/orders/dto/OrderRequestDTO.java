@@ -1,6 +1,7 @@
 package de.webshop.asta.mvp.features.orders.dto;
 
 import de.webshop.asta.mvp.features.orders.entity.PickupStation;
+import de.webshop.asta.mvp.features.orders.entity.PaymentMethod;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -23,6 +24,8 @@ public class OrderRequestDTO {
 
     @NotNull(message = "Bitte wähle eine Abholstation aus.")
     private PickupStation pickupStation;
+
+    private PaymentMethod paymentMethod = PaymentMethod.BAR_BEI_ABHOLUNG;
 
     @NotEmpty(message = "Die Bestellung muss mindestens ein Produkt enthalten.")
     @Valid

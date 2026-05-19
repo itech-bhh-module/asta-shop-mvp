@@ -2,6 +2,8 @@ package de.webshop.asta.mvp.features.orders.service;
 
 import de.webshop.asta.mvp.features.orders.dto.OrderRequestDTO;
 import de.webshop.asta.mvp.features.orders.entity.OrderItem;
+import de.webshop.asta.mvp.features.orders.entity.OrderStatus;
+import de.webshop.asta.mvp.features.orders.entity.PaymentMethod;
 import de.webshop.asta.mvp.features.orders.entity.ShopOrder;
 import de.webshop.asta.mvp.features.orders.repository.OrderRepository;
 import de.webshop.asta.mvp.features.products.entity.Product;
@@ -26,6 +28,13 @@ public class OrderService {
         
         order.setSessionId(orderRequest.getSessionId());
         order.setPickupStation(orderRequest.getPickupStation());
+        order.setPaymentMethod(orderRequest.getPaymentMethod());
+
+        if (orderRequest.getPaymentMethod() == PaymentMethod.PAYPAL) {
+            order.setStatus(OrderStatus.PAID);
+        } else {
+            order.setStatus(OrderStatus.AWAITING_PAYMENT);
+        }
         
         if (orderRequest.getPublicId() != null) {
             order.setPublicId(orderRequest.getPublicId());

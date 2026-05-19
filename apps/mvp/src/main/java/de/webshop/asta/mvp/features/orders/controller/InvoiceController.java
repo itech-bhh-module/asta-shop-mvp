@@ -3,6 +3,7 @@ package de.webshop.asta.mvp.features.orders.controller;
 import de.webshop.asta.mvp.features.orders.dto.AdminInvoiceResponseDTO;
 import de.webshop.asta.mvp.features.orders.dto.InvoiceItemResponseDTO;
 import de.webshop.asta.mvp.features.orders.dto.UserInvoiceResponseDTO;
+import de.webshop.asta.mvp.features.orders.entity.OrderStatus;
 import de.webshop.asta.mvp.features.orders.entity.ShopOrder;
 import de.webshop.asta.mvp.features.orders.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -81,5 +82,24 @@ public class InvoiceController {
         }).collect(Collectors.toList());
 
         return ResponseEntity.ok(responseList);
+    }
+
+    @PostMapping("/admin/{publicId}/pay")
+    public ResponseEntity<String> markOrderAsPaid(@PathVariable UUID publicId) {
+        ShopOrder order = orderRepository.findByPublicId(publicId)
+                .orElseThrow(() -> new IllegalArgumentException("Bestellung mit dieser ID nicht gefunden."));
+
+        if (order.getStatus() == OrderStatus.PAID) {
+            return ResponseEntity.badRequest().body("Fehler: Diese Bestellung ist bereits bezahlt.");
+        }
+        
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            return ResponseEntity.badRequest().body("Fehler: Stornierte Bestellungen können nicht bezahlt werden.");
+        }
+
+        order.setStatus(OrderStatus.PAID);
+        orderRepository.save(order);
+
+        return ResponseEntity.ok("Erfolg: Zahlung erhalten. Der Status wurde auf PAID gesetzt.");
     }
 }
