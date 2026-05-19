@@ -780,7 +780,6 @@ function AdminStatus() {
   const [loading, setLoading] = useState(true)
 
   const loadStatuses = useCallback(async () => {
-    setLoading(true)
     try {
       const nextStatuses = await Promise.all([checkApiHealth(), checkActuatorHealth(), checkDatabaseHealth()])
       setStatuses(nextStatuses)
@@ -799,7 +798,7 @@ function AdminStatus() {
     <section className="section-band status-section" style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '1rem', padding: '1.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e5e7eb', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: '0', color: '#000000' }}>System- &amp; API-Status</h2>
-        <button type="button" onClick={() => { void loadStatuses() }} style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}>Neu prüfen</button>
+        <button type="button" onClick={() => { setLoading(true); void loadStatuses() }} style={{ padding: '0.5rem 1rem', fontSize: '0.75rem', fontWeight: 'bold', cursor: 'pointer' }}>Neu prüfen</button>
       </div>
       {loading && <StateMessage title="Status wird geladen..." />}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
@@ -889,7 +888,6 @@ export default function App() {
   }, [analyticsId])
 
   const loadProducts = useCallback(async () => {
-    setProductsLoading(true)
     setProductsError('')
     try {
       const nextProducts = await getProducts()
@@ -915,7 +913,6 @@ export default function App() {
   }, [loadProducts])
 
   const loadCart = useCallback(async () => {
-    setCartLoading(true)
     setCartError('')
     try {
       const nextCart = await getCart(analyticsId)
