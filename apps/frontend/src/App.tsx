@@ -266,7 +266,7 @@ function CheckoutForm({ checkoutForm, setCheckoutForm, isSubmittingOrder, onChec
           Wo möchtest du die Bestellung abholen?
           <select 
             value={checkoutForm.pickupLocation} 
-            onChange={e => setCheckoutForm(prev => ({...prev, pickupLocation: e.target.value as any}))} 
+            onChange={e => setCheckoutForm(prev => ({...prev, pickupLocation: e.target.value as CheckoutFormState['pickupLocation']}))} 
             style={{ padding: '0.65rem', border: '1px solid #d1d5db', borderRadius: '6px', backgroundColor: '#fff', fontSize: '0.95rem', cursor: 'pointer' }}
           >
             <option value="CAMPUS_BERLINER_TOR">AStA BHH - Berliner Tor</option>
@@ -583,7 +583,6 @@ function InvoiceView({ invoice, onBack }: InvoiceViewProps) {
         Bitte zeige diesen Beleg bei der Abholung vor Ort auf deinem Smartphone vor. Du kannst deinen Einkauf dort bar bezahlen oder per PayPal-App begleichen.
       </div>
 
-      {/* Neuer interaktiver Download-/Druck-Button */}
       <button 
         type="button" 
         onClick={() => window.print()} 
@@ -772,12 +771,19 @@ function AdminStatus() {
 
   const loadStatuses = useCallback(async () => {
     setLoading(true)
-    const nextStatuses = await Promise.all([checkApiHealth(), checkActuatorHealth(), checkDatabaseHealth()])
-    setStatuses(nextStatuses)
-    setLoading(false)
+    try {
+      const nextStatuses = await Promise.all([checkApiHealth(), checkActuatorHealth(), checkDatabaseHealth()])
+      setStatuses(nextStatuses)
+    } catch (error) {
+      console.error('Failed to load statuses', error)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  useEffect(() => { queueMicrotask(() => { void loadStatuses() }) }, [loadStatuses])
+  useEffect(() => {
+    loadStatuses()
+  }, [loadStatuses])
 
   return (
     <section className="section-band status-section" style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '1rem', padding: '1.5rem' }}>
@@ -793,7 +799,7 @@ function AdminStatus() {
             <div>
               <h3 style={{ fontSize: '0.875rem', margin: 0, color: '#000000' }}>{status.label}</h3>
               <p style={{ fontSize: '0.65rem', fontFamily: 'monospace', color: '#6b7280', margin: '0.25rem 0' }}>{status.path}</p>
-              <small style={{ fontSize: '0.75rem', color: '#4b5563' }}>HTTP {status.httpStatus ?? 'n/a'}</small>
+              <small style={{ fontSize: '0.75rem', color: '#4b4563' }}>HTTP {status.httpStatus ?? 'n/a'}</small>
             </div>
           </article>
         ))}
@@ -895,7 +901,7 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    queueMicrotask(() => { void loadProducts() })
+    loadProducts()
   }, [loadProducts])
 
   const loadCart = useCallback(async () => {
@@ -912,7 +918,7 @@ export default function App() {
   }, [analyticsId])
 
   useEffect(() => {
-    queueMicrotask(() => { void loadCart() })
+    loadCart()
   }, [loadCart])
 
   function navigate(nextRoute: Route) {
