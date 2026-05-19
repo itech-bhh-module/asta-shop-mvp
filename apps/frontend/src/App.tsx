@@ -791,7 +791,9 @@ function AdminStatus() {
   }, [])
 
   useEffect(() => {
-    loadStatuses()
+    Promise.resolve().then(() => {
+      void loadStatuses()
+    })
   }, [loadStatuses])
 
   return (
@@ -909,7 +911,9 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    loadProducts()
+    Promise.resolve().then(() => {
+      void loadProducts()
+    })
   }, [loadProducts])
 
   const loadCart = useCallback(async () => {
@@ -925,7 +929,9 @@ export default function App() {
   }, [analyticsId])
 
   useEffect(() => {
-    loadCart()
+    Promise.resolve().then(() => {
+      void loadCart()
+    })
   }, [loadCart])
 
   function navigate(nextRoute: Route) {
