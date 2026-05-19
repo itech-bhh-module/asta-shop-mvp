@@ -74,6 +74,16 @@ interface UserInvoice {
   items: InvoiceItem[]
 }
 
+interface CreateOrderPayload {
+  sessionId: string
+  pickupStation: CheckoutFormState['pickupLocation']
+  paymentMethod: PaymentMethod
+  items: Array<{
+    productId: string
+    quantity: number
+  }>
+}
+
 const emptyProductForm: ProductFormState = {
   publicId: null,
   name: '',
@@ -799,7 +809,7 @@ function AdminStatus() {
             <div>
               <h3 style={{ fontSize: '0.875rem', margin: 0, color: '#000000' }}>{status.label}</h3>
               <p style={{ fontSize: '0.65rem', fontFamily: 'monospace', color: '#6b7280', margin: '0.25rem 0' }}>{status.path}</p>
-              <small style={{ fontSize: '0.75rem', color: '#4b4563' }}>HTTP {status.httpStatus ?? 'n/a'}</small>
+              <small style={{ fontSize: '0.75rem', color: '#4b5563' }}>HTTP {status.httpStatus ?? 'n/a'}</small>
             </div>
           </article>
         ))}
@@ -1015,7 +1025,7 @@ export default function App() {
     setIsSubmittingOrder(true)
     setOrderNotice(null)
 
-    const orderPayload = {
+    const orderPayload: CreateOrderPayload = {
       sessionId: analyticsId,
       pickupStation: checkoutForm.pickupLocation,
       paymentMethod: checkoutForm.paymentMethod,
@@ -1026,7 +1036,7 @@ export default function App() {
     }
 
     try {
-      const createRes = await createOrder(orderPayload as any)
+      const createRes = await createOrder(orderPayload)
       if (!createRes) throw new Error('Bestellung fehlgeschlagen.')
 
       await new Promise((resolve) => setTimeout(resolve, 400))
