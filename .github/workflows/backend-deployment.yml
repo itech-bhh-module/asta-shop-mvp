@@ -33,16 +33,34 @@ jobs:
       - name: Deploy Backend (Testing)
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "
-            docker pull $GHCR_IMAGE && \
-            docker stop ${{ env.CONTAINER_NAME }} || true && \
-            docker rm ${{ env.CONTAINER_NAME }} || true && \
+            echo '--- START BACKEND DEPLOYMENT ---'
+            
+            echo '> 1. Prüfe Environment Variablen aus GitHub Secrets:'
+            echo '  - URL: ${{ secrets.SPRING_DATASOURCE_URL }}'
+            echo '  - USER: ${{ secrets.SPRING_DATASOURCE_USERNAME }}'
+            echo '  - PASS: [WIRD AUS SICHERHEITSGRÜNDEN NICHT GELOGGT]'
+            
+            echo '> 2. Ziehe aktuelles Docker Image...'
+            docker pull $GHCR_IMAGE
+            
+            echo '> 3. Räume alte Container auf...'
+            docker stop ${{ env.CONTAINER_NAME }} || true
+            docker rm ${{ env.CONTAINER_NAME }} || true
+            
+            echo '> 4. Starte neuen Container im Netzwerk [asta-network]...'
             docker run -d \
               --name ${{ env.CONTAINER_NAME }} \
+              --network asta-network \
               -p ${{ env.EXTERNAL_PORT }}:${{ env.INTERNAL_PORT }} \
               -e SPRING_DATASOURCE_URL='${{ secrets.SPRING_DATASOURCE_URL }}' \
               -e SPRING_DATASOURCE_USERNAME='${{ secrets.SPRING_DATASOURCE_USERNAME }}' \
               -e SPRING_DATASOURCE_PASSWORD='${{ secrets.SPRING_DATASOURCE_PASSWORD }}' \
               $GHCR_IMAGE
+              
+            echo '> 5. Überprüfe Netzwerk-Status...'
+            docker network inspect asta-network | grep -E '\"Name\": \"${{ env.CONTAINER_NAME }}\"|\"Name\": \"database\"' || echo 'Fehler beim Netzwerk-Matching!'
+            
+            echo '--- DEPLOYMENT SCRIPT ABGESCHLOSSEN ---'
           "
       - name: Simuliere Backend-Tests
         run: |
