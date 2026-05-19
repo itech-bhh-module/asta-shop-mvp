@@ -848,11 +848,14 @@ export default function App() {
     }
   }, [])
 
-  useEffect(() => {
-    const currentPath = window.location.pathname
-    if (currentPath === '/admin/panel') {
-      handleRouting()
+ useEffect(() => {
+    const initialCheck = () => {
+      if (window.location.pathname === '/admin/panel') {
+        handleRouting()
+      }
     }
+    initialCheck()
+    
     window.addEventListener('popstate', handleRouting)
     return () => window.removeEventListener('popstate', handleRouting)
   }, [handleRouting])
