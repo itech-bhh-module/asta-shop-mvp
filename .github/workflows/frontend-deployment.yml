@@ -1,0 +1,92 @@
+name: Deploy Frontend
+
+on:
+  release:
+    types: [ published ]
+  workflow_dispatch:
+
+env:
+  GHCR_IMAGE: "ghcr.io/${{ github.repository }}/frontend:${{ githun.sha }}"
+  CONTAINER_NAME: "frontend-container"
+  INTERNAL_PORT: 80
+  EXTERNAL_PORT: 3000
+
+jobs:
+  deploy-to-testing:
+    runs-on: ubuntu-latest
+    environment: testing
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: "just-a-placeholder-so-we-dont-get-errors"
+
+      - name: check ssh key existance
+        run: |
+          cd ~/.ssh/
+          ls -A
+
+      - name: Deploy Frontend (Testing)
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "
+            echo '--- START FRONTEND DEPLOYMENT ---'
+            
+            echo '> 1. Ziehe aktuelles Docker Image...'
+            docker pull $GHCR_IMAGE
+            
+            echo '> 2. Räume alte Container auf...'
+            docker stop ${{ env.CONTAINER_NAME }} || true
+            docker rm ${{ env.CONTAINER_NAME }} || true
+            
+            echo '> 3. Starte neuen Container...'
+            docker run -d \
+              --name ${{ env.CONTAINER_NAME }} \
+              -p ${{ env.EXTERNAL_PORT }}:${{ env.INTERNAL_PORT }} \
+              --restart unless-stopped \
+              $GHCR_IMAGE
+              
+            echo '--- DEPLOYMENT SCRIPT ABGESCHLOSSEN ---'
+          "
+      - name: Simuliere Frontend-Tests
+        run: |
+          echo "Testing: Prüfe, ob Frontend-Container läuft..."
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "
+            docker ps | grep ${{ env.CONTAINER_NAME }} || { echo 'Frontend-Container läuft nicht!'; exit 1; }
+          "
+
+  deploy-to-production:
+    needs: deploy-to-testing
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: "just-a-placeholder-so-we-dont-get-errors"
+
+      - name: Deploy Frontend (Production)
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USERNAME }}@${{ secrets.SSH_HOST }} "
+            echo '--- START FRONTEND DEPLOYMENT ---'
+            
+            echo '> 1. Ziehe aktuelles Docker Image...'
+            docker pull $GHCR_IMAGE
+            
+            echo '> 2. Räume alte Container auf...'
+            docker stop ${{ env.CONTAINER_NAME }} || true
+            docker rm ${{ env.CONTAINER_NAME }} || true
+            
+            echo '> 3. Starte neuen Container...'
+            docker run -d \
+              --name ${{ env.CONTAINER_NAME }} \
+              -p ${{ env.EXTERNAL_PORT }}:${{ env.INTERNAL_PORT }} \
+              --restart unless-stopped \
+              $GHCR_IMAGE
+              
+            echo '--- DEPLOYMENT SCRIPT ABGESCHLOSSEN ---'
+          "
