@@ -649,4 +649,40 @@ button:disabled {
     align-items: stretch;
     flex-direction: column;
   }
+} 
+
+@media print {
+  .topbar, 
+  .site-footer, 
+  header, 
+  footer, 
+  button,
+  a {
+    display: none !important;
+  }
+
+  body, 
+  .app-shell, 
+  main, 
+  #root {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+
+  section {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }
