@@ -252,3 +252,7 @@ export async function checkDatabaseHealth(): Promise<EndpointStatus> {
     }
   }
 }
+
+export function getUserInvoices(analyticsId: string) {
+  return requestJson<unknown[]>(`/invoice/user/${analyticsId}`)
+}

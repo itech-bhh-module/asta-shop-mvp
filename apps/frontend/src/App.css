@@ -649,4 +649,47 @@ button:disabled {
     align-items: stretch;
     flex-direction: column;
   }
+} /* <-- HIER WAR DER FEHLER: Diese schließende Klammer hat gefehlt! */
+
+/* ==========================================================================
+   DRUCK-OPTIMIERUNG (Wird aktiv, wenn gedruckt oder als PDF gespeichert wird)
+   ========================================================================== */
+@media print {
+  /* Blende absolut alle UI-Elemente und Buttons beim PDF-Export aus */
+  .topbar, 
+  .site-footer, 
+  header, 
+  footer, 
+  button,
+  a {
+    display: none !important;
+  }
+
+  /* Setze den Hintergrund auf reines Papier-Weiß und entferne Web-Abstände */
+  body, 
+  .app-shell, 
+  main, 
+  #root {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Formatiere die Rechnungsbox so, dass sie perfekt das DIN-A4-Blatt füllt */
+  section {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Sorgt dafür, dass farbige Badges (wie AWAITING_PAYMENT) im PDF farbig bleiben */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }
