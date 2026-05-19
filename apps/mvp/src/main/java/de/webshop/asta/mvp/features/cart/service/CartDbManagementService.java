@@ -1,30 +1,47 @@
 package de.webshop.asta.mvp.features.cart.service;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import de.webshop.asta.mvp.features.cart.dto.CartDTO;
 import de.webshop.asta.mvp.features.cart.entity.Cart;
 import de.webshop.asta.mvp.features.cart.repository.CartRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class CartDbManagementService {
+
     private final CartRepository cartRepository;
     private final CartMapper cartMapper;
-    public List<CartDTO> getCartByAnalyticsId(UUID analyticsId){
+
+    public List<CartDTO> getCartByAnalyticsId(UUID analyticsId) {
         return cartRepository.findCartByAnalyticsId(analyticsId)
-                .stream().map(cartMapper::toDto)
+                .stream()
+                .map(cartMapper::toDto)
                 .toList();
     }
-    public Cart addToCart(CartDTO cartDTO){
-        return cartRepository.save(cartMapper.toCart(cartDTO));
+
+    public Cart addToCart(CartDTO cartDTO) {
+        Cart newCart = cartMapper.toCart(cartDTO);
+
+        return cartRepository.findBySessionIdAndProductId(
+                        newCart.getSessionId(),
+                        newCart.getProductId()
+                )
+                .map(existingCart -> {
+                    existingCart.setAmountSelected(
+                            existingCart.getAmountSelected() + newCart.getAmountSelected()
+                    );
+                    return cartRepository.save(existingCart);
+                })
+                .orElseGet(() -> cartRepository.save(newCart));
     }
 
-    public void removeFromCart(UUID analyticsId, UUID publicId){
-        //should return the current cart (list of cartdto for dev)
+    public void removeFromCart(UUID analyticsId, UUID publicId) {
+        // should return the current cart (list of CartDTO for dev)
         cartRepository.deleteCartEntryByAnalyticsIdAndPublicId(analyticsId, publicId);
     }
 }
