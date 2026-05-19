@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 env:
-  GHCR_IMAGE: "ghcr.io/${{ github.repository }}/backend:latest"
+  GHCR_IMAGE: "ghcr.io/${{ github.repository }}/backend:${{ github.sha }}"
   CONTAINER_NAME: "Backend-Container"
   INTERNAL_PORT: 8081
   EXTERNAL_PORT: 8081
