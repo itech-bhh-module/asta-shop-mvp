@@ -36,14 +36,16 @@ class CartDbManagementServiceTest {
         CartDTO dto = new CartDTO(analyticsId, productPublicId, 2, 0);
         Cart newCart = new Cart(null, 10L, 20L, 2, 0);
         Cart savedCart = new Cart(1L, 10L, 20L, 2, 0);
+        CartDTO savedDto = new CartDTO(analyticsId, productPublicId, 2, 0);
 
         when(cartMapper.toCart(dto)).thenReturn(newCart);
         when(cartRepository.findBySessionIdAndProductId(10L, 20L)).thenReturn(Optional.empty());
         when(cartRepository.save(newCart)).thenReturn(savedCart);
+        when(cartMapper.toDto(savedCart)).thenReturn(savedDto);
 
-        Cart result = service.addToCart(dto);
+        CartDTO result = service.addToCart(dto);
 
-        assertEquals(savedCart, result);
+        assertEquals(savedDto, result);
         verify(cartRepository).save(newCart);
     }
 
@@ -56,14 +58,16 @@ class CartDbManagementServiceTest {
         Cart newCart = new Cart(null, 10L, 20L, 3, 0);
         Cart existingCart = new Cart(1L, 10L, 20L, 2, 0);
         Cart savedCart = new Cart(1L, 10L, 20L, 5, 0);
+        CartDTO savedDto = new CartDTO(analyticsId, productPublicId, 5, 0);
 
         when(cartMapper.toCart(dto)).thenReturn(newCart);
         when(cartRepository.findBySessionIdAndProductId(10L, 20L)).thenReturn(Optional.of(existingCart));
         when(cartRepository.save(existingCart)).thenReturn(savedCart);
+        when(cartMapper.toDto(savedCart)).thenReturn(savedDto);
 
-        Cart result = service.addToCart(dto);
+        CartDTO result = service.addToCart(dto);
 
-        assertEquals(savedCart, result);
+        assertEquals(savedDto, result);
         assertEquals(5, existingCart.getAmountSelected());
         verify(cartRepository).save(existingCart);
     }
