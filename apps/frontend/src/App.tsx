@@ -708,7 +708,7 @@ function AdminPanel({ onRefreshProducts, products, productsError, productsLoadin
     <div className="page-grid admin-page" style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
       <section className="admin-head" style={{ borderBottom: '1px solid #e5e7eb', paddingBottom: '2rem' }}>
         <p className="eyebrow" style={{ color: '#008296', fontWeight: 'bold', textTransform: 'uppercase', fontSize: '0.75rem' }}>Admin Dashboard</p>
-        <h1 style={{ fontSize: '2rem', fontWeight 900, margin: '0.5rem 0', color: '#000000' }}>System &amp; Sortiment</h1>
+        <h1 style={{ fontSize: '2rem', fontWeight: 900, margin: '0.5rem 0', color: '#000000' }}>System &amp; Sortiment</h1>
         <p className="lede" style={{ color: '#6b7280' }}>Pflege das Sortiment und prüfe API- und Infrastrukturstabilitäten.</p>
       </section>
 
