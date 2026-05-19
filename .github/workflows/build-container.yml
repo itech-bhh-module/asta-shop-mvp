@@ -26,7 +26,11 @@ jobs:
       - name: build and push docker compose
         run: |
           export TAG=${{ github.sha }}
-          docker compose -f docker-compose.yml build --build-arg TAG=$TAG
+          docker compose -f docker-compose.yml build \
+            --build-arg TAG=$TAG \
+            --build-arg SPRING_DATASOURCE_URL=${{ secrets.SPRING_DATASOURCE_URL }} \
+            --build-arg SPRING_DATASOURCE_USERNAME=${{ secrets.SPRING_DATASOURCE_USERNAME }} \
+            --build-arg SPRING_DATASOURCE_PASSWORD=${{ secrets.SPRING_DATASOURCE_PASSWORD }}
           docker compose -f docker-compose.yml push
         env:
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
