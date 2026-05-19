@@ -25,6 +25,7 @@ public class OrderService {
         ShopOrder order = new ShopOrder();
         
         order.setSessionId(orderRequest.getSessionId());
+        order.setPickupStation(orderRequest.getPickupStation());
         
         if (orderRequest.getPublicId() != null) {
             order.setPublicId(orderRequest.getPublicId());

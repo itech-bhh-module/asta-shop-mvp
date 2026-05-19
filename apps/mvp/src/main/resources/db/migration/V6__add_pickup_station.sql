@@ -1,0 +1,1 @@
+ALTER TABLE shop_orders ADD COLUMN pickup_station VARCHAR(255);
