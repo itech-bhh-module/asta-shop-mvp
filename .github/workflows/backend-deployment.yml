@@ -6,10 +6,8 @@ on:
   workflow_dispatch:
 
 env:
-  MAIN_SHA: $(git show --format="%H" --no-patch origin/main)
-  GHCR_IMAGE: "ghcr.io/${{ github.repository }}/backend:186bc5fe5e2e8221668c8f8e2af1cb8c4adbffec"
-  CONTAINER_NAME: "backend-186bc5fe5e2e8221668c8f8e2af1cb8c4adbffec"
-  #test
+  GHCR_IMAGE: "ghcr.io/${{ github.repository }}/backend:latest"
+  CONTAINER_NAME: "backend-latest"
   INTERNAL_PORT: 8081
   EXTERNAL_PORT: 8081
 
@@ -38,7 +36,13 @@ jobs:
             docker pull $GHCR_IMAGE && \
             docker stop ${{ env.CONTAINER_NAME }} || true && \
             docker rm ${{ env.CONTAINER_NAME }} || true && \
-            docker run -d --name ${{ env.CONTAINER_NAME }} -p ${{ env.EXTERNAL_PORT }}:${{ env.INTERNAL_PORT }} $GHCR_IMAGE
+            docker run -d \
+              --name ${{ env.CONTAINER_NAME }} \
+              -p ${{ env.EXTERNAL_PORT }}:${{ env.INTERNAL_PORT }} \
+              -e SPRING_DATASOURCE_URL='${{ secrets.SPRING_DATASOURCE_URL }}' \
+              -e SPRING_DATASOURCE_USERNAME='${{ secrets.SPRING_DATASOURCE_USERNAME }}' \
+              -e SPRING_DATASOURCE_PASSWORD='${{ secrets.SPRING_DATASOURCE_PASSWORD }}' \
+              $GHCR_IMAGE
           "
       - name: Simuliere Backend-Tests
         run: |

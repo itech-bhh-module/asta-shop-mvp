@@ -12,22 +12,13 @@ services:
     build:
       context: ./apps/mvp
       dockerfile: Dockerfile
-      args:
-          - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
-          - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
-          - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
-          - TAG=${TAG}
     container_name: backend-container
     ports:
       - "8081:8081"
-    environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
     restart: unless-stopped
 
   frontend:
-    image: ghcr.io/itech-bhh-module/asta-shop-mvp/frontend:${TAG}
+    image: ghcr.io/itech-bhh-module/asta-shop-mvp/frontend:latest
     build:
       context: ./apps/frontend
       dockerfile: Dockerfile
